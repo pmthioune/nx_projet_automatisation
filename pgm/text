@@ -1,0 +1,17 @@
+Bonjour à tous,
+
+Suite à notre réunion de kick-off, voici les principaux points abordés :
+
+Diagnostic : Plusieurs problèmes ont été identifiés, comme la qualité des données, le manque de standardisation entre les versions N et N-1, et des erreurs dans la définition des périmètres des entités.
+
+Objectifs : Automatiser la production des datapacks pour réduire les délais à une semaine et améliorer la fiabilité des livrables.
+
+Solutions proposées : Automatisation des processus, correction des erreurs, et amélioration de la qualité des données.
+
+Planning et gouvernance : Suivi régulier pour respecter les jalons et mise en place d’une solution transitoire avant l’intégration complète de UV MOD CIBLE en janvier 2025.
+
+Prochaines étapes : Migration des codes SAS et R vers Python et confirmation des changements liés à IFRS9.
+
+Merci pour votre participation. Le support de présentation est en pièce jointe.
+
+Cordialement,
