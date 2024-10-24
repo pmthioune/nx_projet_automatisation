@@ -22,17 +22,20 @@ class DataQuality:
         self.data = data
         self.rapport = {}
 
-    def verifier_valeurs_manquantes(self):
+    def check_missing_values(self):
         """
-        Vérifie la présence de valeurs manquantes dans les données.
+        Vérifie la présence de valeurs manquantes dans les colonnes du DataFrame PySpark.
 
-        :return: dict, récapitulatif des colonnes contenant des valeurs manquantes et leur quantité.
+        :return: DataFrame, rapport des colonnes avec des valeurs manquantes et leur quantité.
         """
-        print("Vérification des valeurs manquantes...")
-        # Simuler la vérification des valeurs manquantes (si data est un dict)
-        missing_data = {key: value for key, value in self.data.items() if value is None or value == ""}
-        self.rapport['valeurs_manquantes'] = missing_data
-        return missing_data
+        print("Vérification des valeurs manquantes dans le DataFrame PySpark...")
+        missing_value_report = self.data.select(
+            [(spark_sum(col(c).isNull().cast("int")).alias(c)) for c in self.data.columns]
+        )
+
+        # Affichage du rapport des colonnes contenant des valeurs manquantes
+        missing_value_report.show()
+        return missing_value_report
 
     def verifier_doublons(self):
         """
