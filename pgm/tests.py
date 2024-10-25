@@ -29,3 +29,24 @@ datapack_instance.perform_gap_analysis(
 report_folder = datapack_instance.generate_folder()
 
 print(f"Les fichiers ont été générés dans : {report_folder}")
+
+from pyspark.sql import SparkSession
+from pyspark.sql import Row
+
+# Initialiser la session Spark
+spark = SparkSession.builder.appName("DataQualityTests").getOrCreate()
+
+# Exemple de données avec valeurs manquantes, doublons et outliers
+data = [
+    Row(CA=10000, EAD=200000),
+    Row(CA=None, EAD=150000),       # Valeur manquante pour CA
+    Row(CA=12000, EAD=3000),        # Outlier sur EAD
+    Row(CA=250000, EAD=1500000),
+    Row(CA=250000, EAD=1500000),    # Doublon
+    Row(CA=700000, EAD=100000),     # Outlier sur CA
+]
+
+df = spark.createDataFrame(data)
+
+# Instancier la classe avec le DataFrame
+dq_pyspark = DataQualityPySpark(df)
