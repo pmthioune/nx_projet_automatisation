@@ -1,93 +1,69 @@
 import os
-import datetime
-from pyspark.sql import DataFrame
-from indicator import Indicator  # Assurez-vous que ce chemin d'import est correct en fonction de votre structure
-from dataquality import DataQuality  # Assurez-vous également que l'import est correct
-
-# Classe d'exception personnalisée pour le processus
-class ProcessError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+from datetime import datetime
 
 
 class Process:
-    def __init__(self, name: str, data: DataFrame):
-        self.name = name
-        self.data = data
-        self.data_quality = DataQuality(data)
-
-    def collect_data(self, data_folder: str):
+    def __init__(self, data_type, period, mapping_file_path, input_folder, output_folder):
         """
-        Collecte les données à partir du dossier spécifié.
+        Initialise la classe Process avec le type de données, la période, le fichier de mapping, et les dossiers d'entrée et de sortie.
+        :param data_type: Type de données (PD, LGD, etc.).
+        :param period: Période d'extraction.
+        :param mapping_file_path: Chemin vers le fichier Excel de mapping.
+        :param input_folder: Dossier contenant les fichiers de données.
+        :param output_folder: Dossier où seront stockés les résultats.
+        """
+        self.data_type = data_type
+        self.period = period
+        self.mapping_file_path = mapping_file_path
+        self.input_folder = input_folder
+        self.output_folder = output_folder
+        self.data_instance = None
+        self.data_quality_instance = None
+        self.indicator_instance = None
+        self.datapack_instance = None
+
+    def run_process(self):
+        """
+        Exécute le processus de bout en bout : collecte, vérification de la qualité, calcul d'indicateurs, et génération du datapack.
         """
         try:
-            # Exemple de simulation de collecte de données
-            print(f"Collecting data from {data_folder}...")
-            # Logique de collecte de données ici
-            if not os.path.exists(data_folder):
-                raise ProcessError(f"Data folder '{data_folder}' does not exist.")
-        except Exception as e:
-            raise ProcessError(f"Error during data collection: {str(e)}")
+            # 1. Collecte des données
+            self.data_instance = Data(self.data_type, self.period, self.mapping_file_path)
+            self.data_instance.collect_data(self.input_folder)
 
-    def process_data(self):
-        """
-        Applique les traitements nécessaires aux données.
-        """
-        try:
-            print("Processing data...")
-            # Ajoutez ici les transformations nécessaires
-            # Exemple de traitement
-        except Exception as e:
-            raise ProcessError(f"Error during data processing: {str(e)}")
+            # Vérification si la collecte est réussie
+            if self.data_instance.dataframe is None:
+                raise ValueError("Aucune donnée collectée. Vérifiez le dossier d'entrée ou le fichier de mapping.")
 
-    def analyze_data_quality(self):
-        """
-        Effectue l'analyse de qualité de données en utilisant la classe DataQuality.
-        """
-        try:
-            print("Analyzing data quality...")
-            self.data_quality.check_missing_values()
-            self.data_quality.detect_duplicates()
-            self.data_quality.detect_outliers()
-        except Exception as e:
-            raise ProcessError(f"Error during data quality analysis: {str(e)}")
+            # 2. Analyse de la qualité des données
+            self.data_quality_instance = DataQuality(self.data_instance.dataframe)
+            dq_report = self.data_quality_instance.run_checks()
+            print("Rapport de qualité des données :")
+            print(dq_report)
 
-    def generate_datapack_folder(self):
-        """
-        Crée un dossier avec un horodatage pour stocker les datapacks et analyses de gap.
-        """
-        try:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            folder_name = f"{self.name}_datapack_{timestamp}"
-            os.makedirs(folder_name, exist_ok=True)
-            print(f"Folder '{folder_name}' created to store datapacks and gap analysis.")
-            return folder_name
-        except Exception as e:
-            raise ProcessError(f"Error creating datapack folder: {str(e)}")
+            # 3. Calcul des indicateurs
+            self.indicator_instance = Indicators(self.data_instance.dataframe)
+            indicators_df = self.indicator_instance.calculate_indicators()
+            print("Indicateurs calculés :")
+            print(indicators_df)
 
-    def generate_gap_analysis(self):
-        """
-        Génère une analyse de gap entre les périodes N-1 et N.
-        """
-        try:
-            print("Generating gap analysis...")
-            # Logique de calcul pour l’analyse de gap
-        except Exception as e:
-            raise ProcessError(f"Error generating gap analysis: {str(e)}")
+            # 4. Génération du datapack
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            datapack_folder = os.path.join(self.output_folder, f"datapack_{self.period}_{timestamp}")
+            self.datapack_instance = Datapack(self.period, indicators_df, dq_report)
+            self.datapack_instance.generate_folder(datapack_folder)
+            print(f"Datapack généré dans le dossier : {datapack_folder}")
 
-    def execute(self, data_folder: str):
-        """
-        Exécute toutes les étapes du processus en séquence avec gestion des erreurs.
-        """
-        print(f"Starting process: {self.name}")
-        try:
-            self.collect_data(data_folder)
-            self.process_data()
-            self.analyze_data_quality()
-            folder = self.generate_datapack_folder()
-            self.generate_gap_analysis()
-            print(f"Process {self.name} completed successfully.")
-        except ProcessError as e:
-            print(f"Process failed: {e}")
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            print(f"Erreur lors de l'exécution du processus : {e}")
+
+# Initialisation et exécution du processus
+process = Process(
+    data_type="PD",
+    period="2024-10",
+    mapping_file_path="input/mapping.xlsx",
+    input_folder="input_folder",
+    output_folder="output_folder"
+)
+
+process.run_process()
