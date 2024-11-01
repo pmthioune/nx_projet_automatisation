@@ -1,102 +1,52 @@
+from pyspark.sql import DataFrame
+from pyspark.sql import functions as F
+
+
 class DataQuality:
-    """
-    Classe représentant l'analyse de la qualité des données pour un indicateur donné.
-
-    Attributs:
-    - data: dict ou DataFrame : Les données sur lesquelles effectuer les vérifications de qualité.
-    - rapport: dict : Rapport des vérifications effectuées (contient les résultats des tests de qualité).
-
-    Méthodes:
-    - verifier_valeurs_manquantes(): Vérifie si les données contiennent des valeurs manquantes.
-    - verifier_doublons(): Vérifie la présence de doublons dans les données.
-    - detecter_outliers(): Identifie des valeurs aberrantes dans les données.
-    - generer_rapport(): Compile les résultats des vérifications de qualité en un rapport détaillé.
-    """
-
-    def __init__(self, data):
-        """
-        Initialise l'instance avec les données à analyser.
-
-        :param data: dict ou DataFrame, données brutes sur lesquelles les tests de qualité seront effectués.
-        """
+    def __init__(self, data: DataFrame):
         self.data = data
-        self.rapport = {}
+        self.dq_report = {}
 
-    def check_missing_values(self):
-        """
-        Vérifie la présence de valeurs manquantes dans les colonnes du DataFrame PySpark.
-
-        :return: DataFrame, rapport des colonnes avec des valeurs manquantes et leur quantité.
-        """
-        print("Vérification des valeurs manquantes dans le DataFrame PySpark...")
-        missing_value_report = self.data.select(
-            [(spark_sum(col(c).isNull().cast("int")).alias(c)) for c in self.data.columns]
-        )
-
-        # Affichage du rapport des colonnes contenant des valeurs manquantes
-        missing_value_report.show()
-        return missing_value_report
-
-    def check_duplicates(self, columns: list):
-        """
-        Vérifie la présence de doublons dans les données PySpark pour les colonnes spécifiées.
-
-        :param columns: list, colonnes sur lesquelles la recherche de doublons sera effectuée.
-        :return: DataFrame, les doublons détectés.
-        """
-        print(f"Vérification des doublons sur les colonnes: {columns}...")
-
-        # Créer un DataFrame sans doublons
-        unique_data = self.data.dropDuplicates(subset=columns)
-
-        # Identifier les doublons en comparant le DataFrame d'origine avec celui sans doublons
-        duplicates = self.data.exceptAll(unique_data)
-
-        # Afficher et retourner les doublons
-        if duplicates.count() > 0:
-            print("Doublons détectés :")
-            duplicates.show()
+    def check_duplicates(self):
+        print("Checking for duplicates in the DataFrame...")
+        duplicates_df = self.data.groupBy(self.data.columns).count().filter("count > 1")
+        if duplicates_df.count() > 0:
+            print("Duplicates found.")
+            self.dq_report["duplicates"] = duplicates_df
         else:
-            print("Aucun doublon détecté.")
+            print("No duplicates detected.")
+        return duplicates_df
 
-        return duplicates
-
-    def check_outliers(self, columns_thresholds: dict):
+    def check_missing_values(self, columns_to_check):
         """
-        Vérifie les valeurs hors des seuils (outliers) dans les colonnes spécifiées.
+        Calcule le pourcentage de valeurs manquantes pour les colonnes spécifiées.
 
-        :param columns_thresholds: dict, dictionnaire contenant les colonnes et leurs seuils sous forme de tuples (min, max).
-                                   Exemple: {'CA': (10000, 500000), 'EAD': (5000, 2000000)}
-        :return: DataFrame, contenant les valeurs qui sont des outliers.
+        Paramètres:
+        columns_to_check (list): Liste des noms de colonnes à vérifier pour les valeurs manquantes.
+
+        Retourne:
+        dict: Pourcentage de valeurs manquantes pour chaque colonne spécifiée.
         """
-        outliers_conditions = []
+        # Calculer le total des valeurs non nulles pour chaque colonne spécifiée en une seule opération
+        non_null_counts = self.data.select([
+            F.sum(F.when(F.col(column).isNotNull(), 1).otherwise(0)).alias(column)
+            for column in columns_to_check
+        ])
 
-        # Construction des conditions pour chaque colonne
-        for column, (min_threshold, max_threshold) in columns_thresholds.items():
-            outliers_conditions.append((col(column) < min_threshold) | (col(column) > max_threshold))
+        # Obtenir le nombre total de lignes dans le DataFrame
+        total_count = self.data.count()
 
-        # Combiner les conditions avec un OR logique
-        outliers_condition = outliers_conditions[0]
-        for condition in outliers_conditions[1:]:
-            outliers_condition = outliers_condition | condition
+        # Calculer le pourcentage de valeurs manquantes pour chaque colonne
+        missing_values_rate = {
+            column: (1 - non_null_counts.collect()[0][column] / total_count) * 100
+            for column in columns_to_check
+        }
 
-        # Filtrer les lignes contenant des outliers
-        outliers_df = self.data.filter(outliers_condition)
+        # Enregistrer dans dq_report
+        self.dq_report["missing_values_rate"] = missing_values_rate
 
         # Afficher les résultats
-        if outliers_df.count() > 0:
-            print("Outliers détectés :")
-            outliers_df.show()
-        else:
-            print("Aucun outlier détecté.")
+        print("Percentage of missing values in selected columns:")
+        print(missing_values_rate)
 
-        return outliers_df
-
-    def generer_rapport(self):
-        """
-        Génère un rapport de qualité basé sur les tests effectués.
-
-        :return: dict, rapport complet des vérifications de qualité des données.
-        """
-        print("Génération du rapport de qualité des données...")
-        return self.rapport
+        return missing_values_rate
