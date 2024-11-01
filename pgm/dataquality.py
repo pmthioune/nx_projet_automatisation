@@ -50,3 +50,33 @@ class DataQuality:
         print(missing_values_rate)
 
         return missing_values_rate
+
+    def check_outliers(self, threshold_dict):
+        """
+        Filtre les valeurs manquantes (NaN ou null) et les outliers en fonction des seuils définis.
+
+        Paramètres:
+        threshold_dict (dict): Dictionnaire contenant les limites des outliers par colonne sous la forme
+                               {"column_name": {"min": min_value, "max": max_value}}
+
+        Retourne:
+        DataFrame: DataFrame sans valeurs manquantes ni outliers dans les colonnes spécifiées.
+        """
+        conditions = []
+        for column, limits in threshold_dict.items():
+            # Condition pour exclure les valeurs manquantes
+            condition = (~F.isnan(F.col(column)) & F.col(column).isNotNull())
+
+            # Conditions pour les outliers si définis dans threshold_dict
+            if "min" in limits:
+                condition &= (F.col(column) >= limits["min"])
+            if "max" in limits:
+                condition &= (F.col(column) <= limits["max"])
+
+            conditions.append(condition)
+
+        # Combiner toutes les conditions avec un AND logique pour appliquer le filtre
+        combined_condition = F.reduce(lambda a, b: a & b, conditions)
+        filtered_data = self.data.filter(combined_condition)
+
+        return filtered_data
