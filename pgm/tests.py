@@ -50,3 +50,29 @@ df = spark.createDataFrame(data)
 
 # Instancier la classe avec le DataFrame
 dq_pyspark = DataQualityPySpark(df)
+
+from pyspark.sql import SparkSession
+
+# Configurer une session Spark avec des ressources spécifiques
+spark = SparkSession.builder \
+    .appName("NomDeLApplication") \
+    .config("spark.executor.memory", "4g") \   # Mémoire par exécuteur
+    .config("spark.executor.cores", "2") \     # Nombre de cœurs par exécuteur
+    .config("spark.driver.memory", "2g") \     # Mémoire pour le driver
+    .config("spark.num.executors", "4") \      # Nombre d'exécuteurs
+    .getOrCreate()
+
+# Vérifiez les paramètres alloués
+print("Nombre d'exécuteurs:", spark.sparkContext._conf.get("spark.num.executors"))
+print("Mémoire par exécuteur:", spark.sparkContext._conf.get("spark.executor.memory"))
+print("Cœurs par exécuteur:", spark.sparkContext._conf.get("spark.executor.cores"))
+print("Mémoire du driver:", spark.sparkContext._conf.get("spark.driver.memory"))
+
+# Testez avec un DataFrame
+data = [("Alice", 34), ("Bob", 45), ("Catherine", 29)]
+df = spark.createDataFrame(data, ["Nom", "Âge"])
+df.show()
+
+# Arrêtez la session Spark une fois le travail terminé
+spark.stop()
+
