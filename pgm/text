@@ -1,17 +1,24 @@
-Bonjour à tous,
+Objet : Compte rendu – Suivi projet titrisation (04/11/2024)
 
-Suite à notre réunion de kick-off, voici les principaux points abordés :
+Bonjour [Nom du destinataire],
 
-Diagnostic : Plusieurs problèmes ont été identifiés, comme la qualité des données, le manque de standardisation entre les versions N et N-1, et des erreurs dans la définition des périmètres des entités.
+Voici les points discutés lors de notre réunion de suivi du projet titrisation du 4 novembre 2024.
 
-Objectifs : Automatiser la production des datapacks pour réduire les délais à une semaine et améliorer la fiabilité des livrables.
+1. Avancement du projet d'automatisation des datapacks
+Nous avons fait le point sur l’avancée des principales étapes du projet. L’équipe progresse selon le planning, notamment sur la migration des codes vers Python pour une solution plus efficace.
 
-Solutions proposées : Automatisation des processus, correction des erreurs, et amélioration de la qualité des données.
+2. Intégration de Rim
+Rim a rejoint l’équipe pour renforcer les travaux en cours. Nous avons échangé sur ses missions et planifié des points réguliers pour l’aider à monter en compétences.
 
-Planning et gouvernance : Suivi régulier pour respecter les jalons et mise en place d’une solution transitoire avant l’intégration complète de UV MOD CIBLE en janvier 2025.
+3. Accès aux documents et transfert de connaissances
+Les accès aux répertoires de partage ont été validés pour faciliter l’accès aux informations clés. Un ensemble de documents a été mis à disposition pour accélérer le transfert de connaissances.
 
-Prochaines étapes : Migration des codes SAS et R vers Python et confirmation des changements liés à IFRS9.
+4. Suivi quotidien des travaux
+Nous avons mis en place un backlog journalier pour suivre les tâches au quotidien, identifier les blocages et s'assurer que les priorités sont bien alignées.
 
-Merci pour votre participation. Le support de présentation est en pièce jointe.
+Pièce jointe :
+Le rétroplanning détaillé des missions et livrables est joint pour une vue d’ensemble du projet.
+
+N'hésitez pas si vous avez des questions ou des points à ajouter.
 
 Cordialement,
