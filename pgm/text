@@ -1,9 +1,33 @@
-Hello,
+/* Étape 1 : Charger les données */
+data recoveries;
+    infile 'votre_fichier.csv' dlm=',' dsd firstobs=2;
+    input Year Entity $ Cum_M1 Cum_M2 Cum_M3 Cum_M4 Cum_M5 Cum_M6 Cum_M7 Cum_M8;
+run;
 
-The meeting is canceled as Amande is currently on leave. If necessary, we will reschedule it upon her return.
+/* Étape 2 : Calculer le nombre de prêts soldés pour chaque mois de manière dynamique */
+data loans_sold;
+    set recoveries;
+    
+    /* Définir un seuil de recouvrement pour considérer un prêt comme soldé */
+    threshold = 0.95;
+    
+    /* Initialiser un compteur pour le nombre total de prêts soldés */
+    Total_Loans_Sold = 0;
 
-Thank you for your understanding.
+    /* Utilisation d'un tableau pour stocker les variables de recouvrement cumulées */
+    array Cum[8] Cum_M1 - Cum_M8;
+    
+    /* Boucle pour vérifier chaque mois et compter les prêts soldés */
+    do i = 1 to dim(Cum);
+        if Cum[i] >= threshold then Total_Loans_Sold + 1;
+    end;
 
-Best regards,
+    /* Supprimer la variable temporaire */
+    drop i threshold;
+run;
 
-Cordialement,
+/* Étape 3 : Afficher les résultats par année et entité */
+proc print data=loans_sold;
+    var Year Entity Total_Loans_Sold;
+    title "Nombre de prêts soldés par année et entité";
+run;
