@@ -1,49 +1,64 @@
-from pyspark.sql import functions as F
-from pyspark.sql import DataFrame
+# data_processing/data_quality.py
+import pandas as pd
+from .exceptions import MissingValuesError, DuplicatesError, OutliersError
+from .logger_config import logger
 
 
 class DataQuality:
-    def __init__(self, data: DataFrame):
-        self.data = data
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
 
-    def check_and_calculate_outliers(self, threshold_dict):
-        """
-        Identifie les outliers dans les colonnes spécifiées en fonction des seuils et
-        calcule le taux d'outliers pour chaque colonne.
+    def check_missing_values(self, columns_to_check):
+        try:
+            missing_values = self.dataframe[columns_to_check].isnull().sum()
+            if missing_values.any():
+                logger.warning(f"Missing values found in columns: {missing_values[missing_values > 0].index.tolist()}")
+                raise MissingValuesError(
+                    f"Missing values detected in the following columns: {missing_values[missing_values > 0].index.tolist()}")
+            else:
+                logger.info("No missing values detected.")
+        except KeyError as e:
+            error_message = f"Column(s) not found in the dataframe: {e}"
+            logger.error(error_message)
+            raise MissingValuesError(error_message) from e
+        except Exception as e:
+            error_message = f"Unexpected error while checking missing values: {e}"
+            logger.error(error_message)
+            raise MissingValuesError(error_message) from e
 
-        Paramètres:
-        threshold_dict (dict): Dictionnaire contenant les limites d'outliers par colonne.
+    def check_duplicates(self):
+        try:
+            duplicates = self.dataframe.duplicated().sum()
+            if duplicates > 0:
+                logger.warning(f"{duplicates} duplicate rows detected.")
+                raise DuplicatesError(f"{duplicates} duplicate rows detected.")
+            else:
+                logger.info("No duplicate rows detected.")
+        except Exception as e:
+            error_message = f"Unexpected error while checking duplicates: {e}"
+            logger.error(error_message)
+            raise DuplicatesError(error_message) from e
 
-        Retourne:
-        tuple:
-            - dict contenant les taux d'outliers par colonne en pourcentage.
-            - DataFrame des lignes contenant des valeurs outliers.
-        """
-        outlier_rates = {}
-        total_rows = self.data.count()
+    def check_outliers(self, column, threshold=1.5):
+        try:
+            q1 = self.dataframe[column].quantile(0.25)
+            q3 = self.dataframe[column].quantile(0.75)
+            iqr = q3 - q1
+            lower_bound = q1 - (iqr * threshold)
+            upper_bound = q3 + (iqr * threshold)
 
-        # Commence avec un DataFrame vide pour accumuler les outliers
-        outliers_df = self.data.filter(F.lit(False))
+            outliers = self.dataframe[(self.dataframe[column] < lower_bound) | (self.dataframe[column] > upper_bound)]
 
-        for column, limits in threshold_dict.items():
-            # Initialiser la condition d'outlier pour la colonne
-            column_condition = F.lit(False)
-
-            # Ajouter une condition seulement si la limite existe
-            if limits.get("min") is not None:
-                column_condition |= (F.col(column) < limits["min"])
-            if limits.get("max") is not None:
-                column_condition |= (F.col(column) > limits["max"])
-
-            # Filtrer les valeurs d'outliers pour la colonne
-            column_outliers_df = self.data.filter(column_condition)
-            outliers_df = outliers_df.union(column_outliers_df)
-
-            # Calculer le taux d'outliers
-            outlier_count = column_outliers_df.count()
-            outlier_rate = (outlier_count / total_rows) * 100
-            outlier_rates[column] = outlier_rate
-
-            print(f"Taux d'outliers pour {column}: {outlier_rate:.2f}%")
-
-        return outlier_rates, outliers_df
+            if not outliers.empty:
+                logger.warning(f"Outliers detected in column {column}.")
+                raise OutliersError(f"Outliers detected in column {column}.")
+            else:
+                logger.info(f"No outliers detected in column {column}.")
+        except KeyError as e:
+            error_message = f"Column '{column}' not found in the dataframe: {e}"
+            logger.error(error_message)
+            raise OutliersError(error_message) from e
+        except Exception as e:
+            error_message = f"Unexpected error while checking for outliers in column {column}: {e}"
+            logger.error(error_message)
+            raise OutliersError(error_message) from e

@@ -1,29 +1,28 @@
 # exceptions.py
 
-class CustomException(Exception):
-    """Exception de base pour les erreurs spécifiques au projet."""
-    pass
+# data_processing/exceptions.py
 
-class DatapackError(CustomException):
-    """Exception pour les erreurs spécifiques à la classe Datapack."""
-    def __init__(self, message="Erreur dans le traitement du Datapack"):
+class DataQualityError(Exception):
+    """Base class for all data quality related errors."""
+    def __init__(self, message, *args):
+        super().__init__(message, *args)
         self.message = message
-        super().__init__(self.message)
 
-class DataError(CustomException):
-    """Exception pour les erreurs spécifiques à la classe Data."""
-    def __init__(self, message="Erreur dans la collecte ou traitement des données"):
+class MissingValuesError(DataQualityError):
+    """Raised when there are missing values in the dataset."""
+    def __init__(self, message, *args):
+        super().__init__(message, *args)
         self.message = message
-        super().__init__(self.message)
 
-class IndicatorError(CustomException):
-    """Exception pour les erreurs spécifiques à la classe Indicator."""
-    def __init__(self, message="Erreur dans le calcul ou traitement de l'indicateur"):
+class DuplicatesError(DataQualityError):
+    """Raised when there are duplicate rows in the dataset."""
+    def __init__(self, message, *args):
+        super().__init__(message, *args)
         self.message = message
-        super().__init__(self.message)
 
-class DataQualityError(CustomException):
-    """Exception pour les erreurs spécifiques à la classe DataQuality."""
-    def __init__(self, message="Erreur dans l'analyse de la qualité des données"):
+class OutliersError(DataQualityError):
+    """Raised when outliers are detected in the dataset."""
+    def __init__(self, message, *args):
+        super().__init__(message, *args)
         self.message = message
-        super().__init__(self.message)
+
