@@ -1,64 +1,38 @@
 # data_processing/data_quality.py
-import pandas as pd
-from .exceptions import MissingValuesError, DuplicatesError, OutliersError
+from .exceptions import DataQualityError
 from .logger_config import logger
 
-
 class DataQuality:
-    def __init__(self, dataframe):
-        self.dataframe = dataframe
+    def __init__(self, data):
+        self.data = data
 
     def check_missing_values(self, columns_to_check):
         try:
-            missing_values = self.dataframe[columns_to_check].isnull().sum()
-            if missing_values.any():
-                logger.warning(f"Missing values found in columns: {missing_values[missing_values > 0].index.tolist()}")
-                raise MissingValuesError(
-                    f"Missing values detected in the following columns: {missing_values[missing_values > 0].index.tolist()}")
-            else:
-                logger.info("No missing values detected.")
-        except KeyError as e:
-            error_message = f"Column(s) not found in the dataframe: {e}"
-            logger.error(error_message)
-            raise MissingValuesError(error_message) from e
+            for column in columns_to_check:
+                if self.data[column].isnull().any():
+                    logger.warning(f"Missing values found in column {column}")
+            logger.info("Missing values check completed.")
         except Exception as e:
-            error_message = f"Unexpected error while checking missing values: {e}"
-            logger.error(error_message)
-            raise MissingValuesError(error_message) from e
+            logger.error(f"Error checking missing values: {e}")
+            raise DataQualityError(f"Error checking missing values: {e}") from e
 
     def check_duplicates(self):
         try:
-            duplicates = self.dataframe.duplicated().sum()
-            if duplicates > 0:
-                logger.warning(f"{duplicates} duplicate rows detected.")
-                raise DuplicatesError(f"{duplicates} duplicate rows detected.")
-            else:
-                logger.info("No duplicate rows detected.")
+            if self.data.duplicated().any():
+                logger.warning("Duplicates found in the data.")
+            logger.info("Duplicate check completed.")
         except Exception as e:
-            error_message = f"Unexpected error while checking duplicates: {e}"
-            logger.error(error_message)
-            raise DuplicatesError(error_message) from e
+            logger.error(f"Error checking duplicates: {e}")
+            raise DataQualityError(f"Error checking duplicates: {e}") from e
 
-    def check_outliers(self, column, threshold=1.5):
+    def check_outliers(self, column):
         try:
-            q1 = self.dataframe[column].quantile(0.25)
-            q3 = self.dataframe[column].quantile(0.75)
-            iqr = q3 - q1
-            lower_bound = q1 - (iqr * threshold)
-            upper_bound = q3 + (iqr * threshold)
-
-            outliers = self.dataframe[(self.dataframe[column] < lower_bound) | (self.dataframe[column] > upper_bound)]
-
+            if not column in self.data.columns:
+                raise DataQualityError(f"Column {column} not found for outlier check")
+            outliers = self.data[column][(self.data[column] < -3) | (self.data[column] > 3)]
             if not outliers.empty:
                 logger.warning(f"Outliers detected in column {column}.")
-                raise OutliersError(f"Outliers detected in column {column}.")
-            else:
-                logger.info(f"No outliers detected in column {column}.")
-        except KeyError as e:
-            error_message = f"Column '{column}' not found in the dataframe: {e}"
-            logger.error(error_message)
-            raise OutliersError(error_message) from e
+            logger.info("Outlier check completed.")
         except Exception as e:
-            error_message = f"Unexpected error while checking for outliers in column {column}: {e}"
-            logger.error(error_message)
-            raise OutliersError(error_message) from e
+            logger.error(f"Error checking outliers: {e}")
+            raise DataQualityError(f"Error checking outliers: {e}") from e

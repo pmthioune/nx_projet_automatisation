@@ -1,28 +1,19 @@
-# exceptions.py
-
 # data_processing/exceptions.py
 
+class DataCollectionError(Exception):
+    """Raised when there is an error in data collection."""
+    pass
+
 class DataQualityError(Exception):
-    """Base class for all data quality related errors."""
-    def __init__(self, message, *args):
-        super().__init__(message, *args)
-        self.message = message
+    """Raised when there is an error in data quality analysis."""
+    pass
 
-class MissingValuesError(DataQualityError):
-    """Raised when there are missing values in the dataset."""
-    def __init__(self, message, *args):
-        super().__init__(message, *args)
-        self.message = message
+class CalculationError(Exception):
+    """Raised when there is an error in calculating indicators."""
+    pass
 
-class DuplicatesError(DataQualityError):
-    """Raised when there are duplicate rows in the dataset."""
-    def __init__(self, message, *args):
-        super().__init__(message, *args)
-        self.message = message
+class DatapackGenerationError(Exception):
+    """Raised when there is an error in generating the datapack."""
+    pass
 
-class OutliersError(DataQualityError):
-    """Raised when outliers are detected in the dataset."""
-    def __init__(self, message, *args):
-        super().__init__(message, *args)
-        self.message = message
 
