@@ -1,33 +1,21 @@
-/* Étape 1 : Charger les données */
-data recoveries;
-    infile 'votre_fichier.csv' dlm=',' dsd firstobs=2;
-    input Year Entity $ Cum_M1 Cum_M2 Cum_M3 Cum_M4 Cum_M5 Cum_M6 Cum_M7 Cum_M8;
-run;
+Bonjour Rim,
 
-/* Étape 2 : Calculer le nombre de prêts soldés pour chaque mois de manière dynamique */
-data loans_sold;
-    set recoveries;
-    
-    /* Définir un seuil de recouvrement pour considérer un prêt comme soldé */
-    threshold = 0.95;
-    
-    /* Initialiser un compteur pour le nombre total de prêts soldés */
-    Total_Loans_Sold = 0;
+Merci pour ton retour.
 
-    /* Utilisation d'un tableau pour stocker les variables de recouvrement cumulées */
-    array Cum[8] Cum_M1 - Cum_M8;
-    
-    /* Boucle pour vérifier chaque mois et compter les prêts soldés */
-    do i = 1 to dim(Cum);
-        if Cum[i] >= threshold then Total_Loans_Sold + 1;
-    end;
+Nous sommes alignés pour commencer les tests sur SGMAX avec la partie LGD. Cependant, il est important de noter que la profondeur d'historique disponible dans la cible est limitée, puisque seules les données des arrêtés 2023 et 2024 y sont présentes.
 
-    /* Supprimer la variable temporaire */
-    drop i threshold;
-run;
+Par ailleurs, il faudra également identifier les colonnes manquantes et veiller à les enrichir ou les reconstruire, car les données calculées ne sont pas encore présentes dans la cible.
 
-/* Étape 3 : Afficher les résultats par année et entité */
-proc print data=loans_sold;
-    var Year Entity Total_Loans_Sold;
-    title "Nombre de prêts soldés par année et entité";
-run;
+Cela nous permettra de garantir la complétude des données nécessaires au calcul des indicateurs LGD.
+
+Nous restons à ta disposition pour avancer sur cette première étape.
+
+Bien à toi,
+Papa-Moussa
+
+
+
+
+
+
+
