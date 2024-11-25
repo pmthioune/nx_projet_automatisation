@@ -1,53 +1,38 @@
-# data_processing/data_quality.py
-from .exceptions import DataQualityError
-from .logger_config import logger
-import pandas as pd
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, countDistinct, year
 
 
 class DataQuality:
-    def __init__(self, data):
-        self.data = data
+    def __init__(self):
+        pass
 
-    def calculate_obligors_stats(self, obligor_column, cohort_column, pole_column):
+    @staticmethod
+    def calculate_facilities_by_default_year(
+            df: DataFrame,
+            default_date_col: str,
+            entity_col: str,
+            facility_col: str
+    ) -> DataFrame:
         """
-        Calculate distinct obligors statistics in one pass:
-        - Total number of distinct obligors.
-        - Number of obligors per cohort.
-        - Number of obligors per pole and cohort.
+        Calcule le nombre de facilities distincts par année de défaut et par entité.
 
         Args:
-            obligor_column (str): Name of the column representing obligor IDs.
-            cohort_column (str): Name of the column representing cohorts.
-            pole_column (str): Name of the column representing poles.
+            df (DataFrame): Le DataFrame Spark contenant les données.
+            default_date_col (str): Colonne contenant la date de défaut.
+            entity_col (str): Colonne contenant les entités.
+            facility_col (str): Colonne contenant les facilities.
 
         Returns:
-            dict: A dictionary with calculated stats.
+            DataFrame: Résultat des statistiques.
         """
-        try:
-            logger.info("Starting obligors statistics calculation...")
+        # Extraire l'année de défaut
+        df = df.withColumn("default_year", year(col(default_date_col)))
 
-            # Vérifier les colonnes nécessaires
-            required_columns = {obligor_column, cohort_column, pole_column}
-            if not required_columns.issubset(self.data.columns):
-                missing_columns = required_columns - set(self.data.columns)
-                raise DataQualityError(f"Missing required columns: {missing_columns}")
+        # Calculer le nombre de facilities distincts par année de défaut et entité
+        stats_df = (
+            df.groupBy("default_year", entity_col)
+            .agg(countDistinct(col(facility_col)).alias("distinct_facilities"))
+            .orderBy("default_year", entity_col)
+        )
 
-            # Calculer les statistiques en une seule passe
-            grouped = self.data.groupby([pole_column, cohort_column])[obligor_column].nunique()
-
-            # Construire les résultats
-            total_distinct_obligors = self.data[obligor_column].nunique()
-            results = {
-                "total_distinct_obligors": total_distinct_obligors,
-                "obligors_per_cohort": grouped.groupby(level=1).sum().reset_index(name='distinct_obligors'),
-                "obligors_per_pole_cohort": grouped.reset_index(name='distinct_obligors'),
-            }
-
-            logger.info(f"Total distinct obligors: {total_distinct_obligors}")
-            logger.info("Successfully calculated all obligors statistics.")
-
-            return results
-
-        except Exception as e:
-            logger.error(f"Error calculating obligors statistics: {e}")
-            raise DataQualityError(f"Error calculating obligors statistics: {e}") from e
+        return stats_df
