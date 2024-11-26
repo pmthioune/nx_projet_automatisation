@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, countDistinct, year
+from pyspark.sql.functions import col, avg, stddev, min, max, count, expr
 
 
 class DataQuality:
@@ -7,32 +7,29 @@ class DataQuality:
         pass
 
     @staticmethod
-    def calculate_facilities_by_default_year(
-            df: DataFrame,
-            default_date_col: str,
-            entity_col: str,
-            facility_col: str
-    ) -> DataFrame:
+    def descriptive_stats_on_ratings(df: DataFrame, rating_col: str) -> DataFrame:
         """
-        Calcule le nombre de facilities distincts par année de défaut et par entité.
+        Effectue des statistiques descriptives sur une colonne de notation.
 
         Args:
             df (DataFrame): Le DataFrame Spark contenant les données.
-            default_date_col (str): Colonne contenant la date de défaut.
-            entity_col (str): Colonne contenant les entités.
-            facility_col (str): Colonne contenant les facilities.
+            rating_col (str): La colonne contenant les notations à analyser.
 
         Returns:
-            DataFrame: Résultat des statistiques.
+            DataFrame: Résumé des statistiques descriptives.
         """
-        # Extraire l'année de défaut
-        df = df.withColumn("default_year", year(col(default_date_col)))
+        # Vérifier si la colonne existe
+        if rating_col not in df.columns:
+            raise ValueError(f"La colonne '{rating_col}' n'existe pas dans le DataFrame.")
 
-        # Calculer le nombre de facilities distincts par année de défaut et entité
-        stats_df = (
-            df.groupBy("default_year", entity_col)
-            .agg(countDistinct(col(facility_col)).alias("distinct_facilities"))
-            .orderBy("default_year", entity_col)
+        # Calcul des métriques descriptives
+        stats_df = df.select(
+            count(col(rating_col)).alias("count"),
+            count(expr(f"CASE WHEN {rating_col} IS NULL THEN 1 END")).alias("missing_values"),
+            avg(col(rating_col)).alias("mean"),
+            stddev(col(rating_col)).alias("stddev"),
+            min(col(rating_col)).alias("min"),
+            max(col(rating_col)).alias("max"),
         )
 
         return stats_df
