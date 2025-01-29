@@ -1,29 +1,52 @@
-# data_processing/datapack.py
+from dash import html, dcc, Output, Input, State
+import dash_bootstrap_components as dbc
+import time
 import os
-from .exceptions import FolderCreationError
-from .logger_config import logger
 
-class Datapack:
-    def __init__(self, name):
-        self.name = name
+layout = html.Div([
+    html.H4("Calcul des Indicateurs"),
 
-    def generate_folder(self):
-        folder_path = f"./output/{self.name}"
-        try:
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
-                logger.info(f"Folder created successfully at {folder_path}")
-            else:
-                logger.warning(f"Folder already exists at {folder_path}")
-        except PermissionError as e:
-            error_message = f"Permission denied: Cannot create folder at {folder_path}. Error: {e}"
-            logger.error(error_message)
-            raise FolderCreationError(error_message) from e
-        except OSError as e:
-            error_message = f"OS error occurred while creating folder at {folder_path}. Error: {e}"
-            logger.error(error_message)
-            raise FolderCreationError(error_message) from e
-        except Exception as e:
-            error_message = f"Unexpected error during folder creation at {folder_path}. Error: {e}"
-            logger.error(error_message)
-            raise FolderCreationError(error_message) from e
+    dcc.Dropdown(
+        id="dropdown-indicateurs",
+        options=[{"label": f"Indicateur {i}", "value": i} for i in range(1, 21)],
+        placeholder="Sélectionnez les indicateurs",
+        multi=True,
+        style={"width": "50%"}
+    ),
+    html.Br(),
+
+    html.Div([
+        dbc.Progress(id="progress-bar", striped=True, animated=True, style={"height": "30px"}),
+        html.Br(),
+        dbc.Button("Lancer le programme", id="run-program-btn", color="primary"),
+    ], style={"padding": "10px"})
+])
+
+
+def register_callbacks(app):
+    @app.callback(
+        [Output("progress-bar", "value"), Output("progress-bar", "label")],
+        [Input("run-program-btn", "n_clicks")],
+        [State("dropdown-indicateurs", "value")]
+    )
+    def run_program(n_clicks, selected_indicators):
+        if not n_clicks:
+            return 0, ""
+
+        if not selected_indicators:
+            return 0, "Sélectionnez des indicateurs."
+
+        # Enregistrement des indicateurs sélectionnés
+        with open("ind_config.py", "w") as f:
+            f.write(f"SELECTED_INDICATORS = {selected_indicators}\n")
+
+        # Exécution simulée avec barre de progression
+        total_steps = 100
+        for i in range(total_steps + 1):
+            time.sleep(0.05)
+            yield i, f"{i}%"
+
+        os.system("python main.py")
+
+        return 100, "Programme terminé."
+
