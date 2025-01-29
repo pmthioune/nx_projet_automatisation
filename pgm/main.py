@@ -1,111 +1,165 @@
-from dash import Dash, html, Input, Output, State, dcc
+from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
-import threading
-import time
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
 
-# Variable globale pour stocker la progression
-progress = 0
+# Initialisation de l'application
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# Programme principal
-def main(id_datapack, name_datapack, date_debut, date_fin):
-    global progress
-    progress = 0  # Réinitialiser la progression
-
-    # Simule un traitement en plusieurs étapes
-    for i in range(1, 101):
-        time.sleep(0.05)  # Simule une tâche longue
-        progress = i  # Met à jour la progression
-        # Simule des étapes spécifiques basées sur les paramètres
-        if i == 50:
-            print(f"Traitement intermédiaire pour {name_datapack}, ID: {id_datapack}")
-        if i == 100:
-            print(f"Traitement terminé : {name_datapack}, Période : {date_debut} à {date_fin}")
-
-# Application Dash
-app = Dash(
-    __name__,
-    external_stylesheets=[
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
-    ],
-)
+# Exemple de données pour les graphiques
+df = pd.DataFrame({
+    "Variable": ["A", "B", "C", "D"],
+    "Missing": [5, 2, 8, 1],
+    "Outliers": [3, 0, 2, 5],
+    "Duplicates": [1, 3, 0, 2],
+})
 
 # Mise en page de l'application
-app.layout = html.Div(
-    [
-        # En-tête
-        html.Div(
-            [
-                html.H1(
-                    "Titrisation - Barre de Progression",
-                    style={
-                        "textAlign": "center",
-                        "fontFamily": "Montserrat",
-                        "color": "white",
-                    },
-                ),
-                html.Img(
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/60/Logo_Soci%C3%A9t%C3%A9_G%C3%A9n%C3%A9rale.svg",
-                    style={"height": "50px", "float": "right"},
-                ),
-            ],
-            style={"backgroundColor": "rgb(233, 4, 30)", "padding": "10px"},
-        ),
-        # Formulaire pour saisir les paramètres
-        dbc.Row(
-            [
-                dbc.Col(dbc.Input(id="id-datapack", type="number", placeholder="ID Datapack"), width=3),
-                dbc.Col(
-                    dcc.Dropdown(
-                        id="name-datapack",
-                        options=[{"label": "RACER", "value": "RACER"}, {"label": "JUNON", "value": "JUNON"}],
-                        placeholder="Nom du Datapack",
-                    ),
-                    width=3,
-                ),
-                dbc.Col(dcc.Input(id="date-debut", type="text", placeholder="Date Début (YYYY/MM/DD)"), width=3),
-                dbc.Col(dcc.Input(id="date-fin", type="text", placeholder="Date Fin (YYYY/MM/DD)"), width=3),
-            ],
-            className="mb-3",
-        ),
-        # Bouton de lancement
-        dbc.Button("Lancer le Traitement", id="start-button", color="primary", className="mb-4"),
-        # Intervalle pour surveiller la progression
-        dcc.Interval(id="progress-interval", interval=500, n_intervals=0, disabled=True),
-        # Barre de progression
-        dbc.Progress(id="progress-bar", striped=True, animated=True, value=0),
-        # Texte de progression
-        html.Div(id="progress-text", className="mt-2", style={"textAlign": "center"}),
-    ],
-    style={"padding": "20px", "fontFamily": "Source Sans Pro"},
-)
+app.layout = html.Div([
+    dcc.Tabs(
+        id="tabs",
+        value="tab-datapack",
+        children=[
+            # Onglet Datapack
+            dcc.Tab(
+                label="Datapack",
+                value="tab-datapack",
+                children=[
+                    html.Div(
+                        [
+                            html.H4("Calcul des Indicateurs"),
+                            dbc.Checklist(
+                                options=[{"label": f"Indicateur {i}", "value": i} for i in range(1, 21)],
+                                id="checklist-indicateurs",
+                                inline=True,
+                            ),
+                            html.Hr(),
+                            html.H4("Informations"),
+                            dbc.Row([
+                                dbc.Col(dbc.Input(id="id-datapack", type="number", placeholder="ID Datapack"), width=3),
+                                dbc.Col(dcc.Dropdown(
+                                    id="name-datapack",
+                                    options=[
+                                        {"label": "RACER", "value": "RACER"},
+                                        {"label": "JUNON", "value": "JUNON"},
+                                    ],
+                                    placeholder="Nom du Datapack",
+                                ), width=3),
+                                dbc.Col(dcc.Input(id="date-debut", type="text", placeholder="Date Début (YYYY/MM/DD)"), width=3),
+                                dbc.Col(dcc.Input(id="date-fin", type="text", placeholder="Date Fin (YYYY/MM/DD)"), width=3),
+                            ]),
+                            html.Br(),
+                            dbc.Button("Créer Datapack", id="create-datapack-btn", color="primary", className="me-2"),
+                            dbc.Button("Télécharger", id="download-btn", color="success"),
+                        ],
+                        style={"padding": "20px"}
+                    )
+                ]
+            ),
+            # Onglet Data Quality
+            dcc.Tab(
+                label="Data Quality",
+                value="tab-dataquality",
+                children=[
+                    html.Div(
+                        [
+                            html.H4("Graphiques de Data Quality"),
+                            dbc.Row([
+                                dbc.Col(dcc.Graph(
+                                    id="missing-values-graph",
+                                    figure=go.Figure(data=[
+                                        go.Bar(x=df["Variable"], y=df["Missing"], name="Valeurs Manquantes")
+                                    ]).update_layout(title="Valeurs Manquantes")
+                                )),
+                                dbc.Col(dcc.Graph(
+                                    id="outliers-graph",
+                                    figure=go.Figure(data=[
+                                        go.Bar(x=df["Variable"], y=df["Outliers"], name="Outliers")
+                                    ]).update_layout(title="Outliers")
+                                )),
+                                dbc.Col(dcc.Graph(
+                                    id="duplicates-graph",
+                                    figure=go.Figure(data=[
+                                        go.Bar(x=df["Variable"], y=df["Duplicates"], name="Doublons")
+                                    ]).update_layout(title="Doublons")
+                                )),
+                            ]),
+                            html.Br(),
+                            dbc.Button("Générer Rapport Word", id="generate-report-btn", color="info"),
+                        ],
+                        style={"padding": "20px"}
+                    )
+                ]
+            ),
+            # Onglet Gap Analyse
+            dcc.Tab(
+                label="Gap Analyse",
+                value="tab-gapanalyse",
+                children=[
+                    html.Div(
+                        [
+                            html.H4("Comparaison des Datapacks"),
+                            dbc.Row([
+                                dbc.Col(dcc.Dropdown(
+                                    id="datapack1",
+                                    options=[
+                                        {"label": "RACER", "value": "RACER"},
+                                        {"label": "JUNON", "value": "JUNON"},
+                                    ],
+                                    placeholder="Datapack 1",
+                                ), width=4),
+                                dbc.Col(dcc.Dropdown(
+                                    id="datapack2",
+                                    options=[
+                                        {"label": "RACER", "value": "RACER"},
+                                        {"label": "JUNON", "value": "JUNON"},
+                                    ],
+                                    placeholder="Datapack 2",
+                                ), width=4),
+                            ]),
+                            html.Br(),
+                            html.H4("Indicateurs à Comparer"),
+                            dbc.Checklist(
+                                options=[{"label": f"Indicateur {i}", "value": i} for i in range(1, 21)],
+                                id="checklist-comparison",
+                                inline=True,
+                            ),
+                            html.Br(),
+                            html.H4("Graphiques de Comparaison"),
+                            dcc.Graph(
+                                id="comparison-graph",
+                                figure=go.Figure().update_layout(title="Comparaison des Indicateurs")
+                            )
+                        ],
+                        style={"padding": "20px"}
+                    )
+                ]
+            ),
+        ]
+    )
+])
 
-# Lancer le programme principal dans un thread séparé
-def run_main(id_datapack, name_datapack, date_debut, date_fin):
-    main(id_datapack, name_datapack, date_debut, date_fin)
-
-# Callback pour démarrer le traitement
+# Callbacks pour mettre à jour les graphiques de comparaison
 @app.callback(
-    Output("progress-interval", "disabled"),
-    Input("start-button", "n_clicks"),
-    [State("id-datapack", "value"), State("name-datapack", "value"), State("date-debut", "value"), State("date-fin", "value")],
-    prevent_initial_call=True,
+    Output("comparison-graph", "figure"),
+    Input("checklist-comparison", "value"),
 )
-def start_processing(n_clicks, id_datapack, name_datapack, date_debut, date_fin):
-    if not (id_datapack and name_datapack and date_debut and date_fin):
-        return True  # Ne pas activer l'intervalle si les paramètres sont incomplets
+def update_comparison(selected_indicators):
+    if not selected_indicators:
+        return go.Figure().update_layout(title="Aucun indicateur sélectionné")
+    else:
+        # Exemple de comparaison fictive
+        data = [
+            go.Bar(name=f"Datapack 1 - Ind {i}", x=["Var A", "Var B"], y=np.random.randint(1, 10, 2))
+            for i in selected_indicators
+        ]
+        data += [
+            go.Bar(name=f"Datapack 2 - Ind {i}", x=["Var A", "Var B"], y=np.random.randint(1, 10, 2))
+            for i in selected_indicators
+        ]
+        return go.Figure(data=data).update_layout(title="Comparaison des Indicateurs", barmode="group")
 
-    # Démarrer le traitement dans un thread séparé
-    threading.Thread(target=run_main, args=(id_datapack, name_datapack, date_debut, date_fin)).start()
-    return False  # Active l'intervalle pour surveiller la progression
-
-# Callback pour mettre à jour la barre de progression
-@app.callback(
-    [Output("progress-bar", "value"), Output("progress-text", "children")],
-    Input("progress-interval", "n_intervals"),
-)
-def update_progress(n_intervals):
-    global progress
-    return progress, f"Progression : {progress}%"
-
+# Démarrage de l'application
 if __name__ == "__main__":
     app.run_server(debug=True)
