@@ -1,27 +1,20 @@
-import sys
+from process import collect_data, data_quality, calculate_indicators, generate_datapack
 
+# Stocke la progression et le message en cours
+progress_state = {"progress": 0, "message": "En attente de démarrage..."}
 
-def main(id_datapack, name_datapack, start_date, end_date, indicateurs):
-    print(f"📌 Exécution du programme pour : {name_datapack}")
-    print(f"➡️ ID Datapack : {id_datapack}")
-    print(f"📅 Période : {start_date} → {end_date}")
-    print(f"📊 Indicateurs sélectionnés : {', '.join(indicateurs)}")
+def progress_callback(progress, message):
+    """Met à jour la progression globale."""
+    progress_state["progress"] = progress
+    progress_state["message"] = message
 
-    # 🔹 Simulation de calculs
-    for i in range(5):
-        print(f"🔄 Traitement {i + 1}/5 en cours...")
-        sys.stdout.flush()  # ⚠️ Nécessaire pour que Dash capte l'avancement
-        time.sleep(2)
+def start_process():
+    """Exécute le programme principal avec mises à jour."""
+    collect_data(progress_callback)
+    data_quality(progress_callback)
+    calculate_indicators(progress_callback)
+    generate_datapack(progress_callback)
 
-    print("✅ Traitement terminé !")
-
-
-if __name__ == "__main__":
-    args = sys.argv[1:]  # Récupérer les arguments depuis Dash
-    id_datapack = int(args[0])
-    name_datapack = args[1]
-    start_date = args[2]
-    end_date = args[3]
-    indicateurs = args[4:]
-
-    main(id_datapack, name_datapack, start_date, end_date, indicateurs)
+def get_progress():
+    """Renvoie la progression actuelle."""
+    return progress_state
