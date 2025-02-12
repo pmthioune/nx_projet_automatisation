@@ -1,5 +1,6 @@
 from process import collect_data, data_quality, calculate_indicators, generate_datapack
 
+
 # Stocke la progression et le message en cours
 progress_state = {"progress": 0, "message": "En attente de démarrage..."}
 
@@ -18,3 +19,6 @@ def start_process():
 def get_progress():
     """Renvoie la progression actuelle."""
     return progress_state
+
+
+
