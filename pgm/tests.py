@@ -1,131 +1,43 @@
-import dash
-from dash import dcc, html, Input, Output, dash_table
-import pandas as pd
+# Récupération des données depuis le dossier
+dataframes = Data.retrieve_data(folder_path_n)
 
-# Initialiser l'application
-app = dash.Dash(__name__)
-
-# Simuler les données pour l'analyse de la qualité des données
-data = {
-    "Colonne1": [1, 2, 2, 4, 5, 6, 6],
-    "Colonne2": ["A", "B", "B", "D", "E", "F", "F"],
-    "Colonne3": [10, 20, 20, 40, 50, 60, 60]
+# Initialisation des résultats pour PD et LGD
+results = {
+    'pd': {
+        'missing_values_rates': pd.DataFrame(),
+        'outlier_rates': pd.DataFrame(),
+        'duplicates': pd.DataFrame(),
+        'nb_duplicates': 0,
+    },
+    'lgd': {
+        'missing_values_rates': pd.DataFrame(),
+        'outlier_rates': pd.DataFrame(),
+        'duplicates': pd.DataFrame(),
+        'nb_duplicates': 0,
+    }
 }
-df = pd.DataFrame(data)
 
-# Layout principal
-app.layout = html.Div([
-    dcc.Tabs([
-        dcc.Tab(label="Data Quality", children=[
-            html.Div([
-                html.H3("Analyse de la qualité des données", style={"marginBottom": "20px"}),
+# Parcours des clés et classification dans les résultats
+for key, df in dataframes.items():
+    key_lower = key.lower()
+    category = 'pd' if 'pd' in key_lower else 'lgd' if 'lgd' in key_lower else None
 
-                # Bloc des valeurs manquantes avec deux graphiques côte à côte
-                html.Div([
-                    html.H4("Valeurs manquantes pour les indicateurs PD et LGD"),
-                    html.Div([
-                        dcc.Graph(id="missing-values-pd-graph", style={"width": "48%", "display": "inline-block"}),
-                        dcc.Graph(id="missing-values-lgd-graph", style={"width": "48%", "display": "inline-block"})
-                    ]),
-                ], style={"border": "1px solid #ddd", "padding": "20px", "marginBottom": "20px", "borderRadius": "8px"}),
+    if category:
+        if 'missing_values_rates' in key_lower:
+            results[category]['missing_values_rates'] = df
+        elif 'outlier_rates' in key_lower:
+            results[category]['outlier_rates'] = df
+        elif 'duplicates' in key_lower:
+            results[category]['duplicates'] = df
+            results[category]['nb_duplicates'] = df.shape[0]
 
-                # Bloc des doublons
-                html.Div([
-                    html.H4("Doublons"),
-                    html.P(id="duplicate-count", style={"fontSize": "16px"}),
-                    dash_table.DataTable(
-                        id="duplicates-table",
-                        columns=[
-                            {"name": col, "id": col} for col in df.columns
-                        ],
-                        style_table={"overflowX": "auto"},
-                        style_cell={
-                            "textAlign": "left",
-                            "padding": "10px",
-                            "fontSize": "14px",
-                        },
-                        style_header={
-                            "backgroundColor": "#f4f4f4",
-                            "fontWeight": "bold",
-                        },
-                    )
-                ], style={"border": "1px solid #ddd", "padding": "20px", "marginBottom": "20px", "borderRadius": "8px"}),
+# Accès aux résultats
+missing_values_rates_pd_df = results['pd']['missing_values_rates']
+outlier_rates_pd_df = results['pd']['outlier_rates']
+duplicates_pd_df = results['pd']['duplicates']
+nb_duplicates_pd = results['pd']['nb_duplicates']
 
-                # Bloc des valeurs aberrantes
-                html.Div([
-                    html.H4("Valeurs aberrantes"),
-                    html.P("Détails des valeurs aberrantes détectées :"),
-                    dash_table.DataTable(
-                        id="outliers-table",
-                        columns=[
-                            {"name": "Colonne", "id": "Colonne"},
-                            {"name": "Valeur", "id": "Valeur"},
-                            {"name": "Description", "id": "Description"}
-                        ],
-                        style_table={"overflowX": "auto"},
-                        style_cell={
-                            "textAlign": "left",
-                            "padding": "10px",
-                            "fontSize": "14px",
-                        },
-                        style_header={
-                            "backgroundColor": "#f4f4f4",
-                            "fontWeight": "bold",
-                        },
-                        style_data_conditional=[
-                            {
-                                "if": {"column_id": "Valeur"},
-                                "backgroundColor": "#ffe6e6",
-                                "color": "black",
-                            }
-                        ],
-                    )
-                ], style={"border": "1px solid #ddd", "padding": "20px", "borderRadius": "8px"}),
-            ])
-        ])
-    ])
-])
-
-# Callback pour la gestion des doublons
-@app.callback(
-    [Output("duplicate-count", "children"),
-     Output("duplicates-table", "data"),
-     Output("missing-values-pd-graph", "figure"),
-     Output("missing-values-lgd-graph", "figure")],
-    [Input("duplicate-count", "id")]  # Trigger initial au chargement
-)
-def update_data_quality(trigger):
-    # Identifier les doublons
-    duplicate_rows = df[df.duplicated()]
-    duplicate_count = len(duplicate_rows)
-
-    # Message pour les doublons
-    if duplicate_count > 0:
-        duplicate_message = f"Nombre total de lignes en doublons : {duplicate_count}"
-        duplicates_data = duplicate_rows.head(5).to_dict("records")
-    else:
-        duplicate_message = "Aucun doublon détecté dans les données."
-        duplicates_data = []
-
-    # Graphique des valeurs manquantes pour PD
-    missing_values_pd_fig = {
-        "data": [
-            {"x": ["Colonne1", "Colonne2", "Colonne3"], "y": [0, 0, 0], "type": "bar", "name": "PD"}
-        ],
-        "layout": {"title": "Valeurs manquantes (%) - PD"}
-    }
-
-    # Graphique des valeurs manquantes pour LGD
-    missing_values_lgd_fig = {
-        "data": [
-            {"x": ["Colonne1", "Colonne2", "Colonne3"], "y": [0, 0, 0], "type": "bar", "name": "LGD"}
-        ],
-        "layout": {"title": "Valeurs manquantes (%) - LGD"}
-    }
-
-    return duplicate_message, duplicates_data, missing_values_pd_fig, missing_values_lgd_fig
-
-
-# Lancer l'application
-if __name__ == "__main__":
-    app.run_server(debug=True)
+missing_values_rates_lgd_df = results['lgd']['missing_values_rates']
+outlier_rates_lgd_df = results['lgd']['outlier_rates']
+duplicates_lgd_df = results['lgd']['duplicates']
+nb_duplicates_lgd = results['lgd']['nb_duplicates']
