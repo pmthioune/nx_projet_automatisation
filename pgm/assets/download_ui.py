@@ -1,7 +1,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-layout = html.Div(
+download_content = html.Div(
     [
         html.H3("Téléchargement", style={"color": "red"}),
         html.P("Vous pouvez télécharger les fichiers générés ici.", style={"font-size": "18px", "margin-top": "20px"}),

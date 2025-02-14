@@ -1,63 +1,9 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-layout = html.Div(
+datapacks_content = html.Div(
     children=[
         html.H3("Datapacks", style={"color": "#FF5733", "margin-bottom": "20px"}),
-
-        # Cadre de configuration
-        html.Div(
-            children=[
-                html.H4("Configuration", style={"color": "#333", "margin-bottom": "20px"}),
-
-                # Champ Date
-                dbc.Row(
-                    [
-                        dbc.Col(dbc.Label("Date", style={"font-weight": "bold"}), width=2),
-                        dbc.Col(dcc.DatePickerSingle(id='config-date', date='2025-02-12'), width=10),
-                    ],
-                    style={"margin-bottom": "10px"}
-                ),
-
-                # Champ Nom
-                dbc.Row(
-                    [
-                        dbc.Col(dbc.Label("Nom", style={"font-weight": "bold"}), width=2),
-                        dbc.Col(dbc.Input(id='config-nom', type='text', placeholder='Entrez le nom'), width=10),
-                    ],
-                    style={"margin-bottom": "10px"}
-                ),
-
-                # Champ Family Name
-                dbc.Row(
-                    [
-                        dbc.Col(dbc.Label("Family Name", style={"font-weight": "bold"}), width=2),
-                        dbc.Col(dbc.Input(id='config-family-name', type='text', placeholder='Entrez le nom de famille'), width=10),
-                    ],
-                    style={"margin-bottom": "10px"}
-                ),
-
-                # Champ ID
-                dbc.Row(
-                    [
-                        dbc.Col(dbc.Label("ID", style={"font-weight": "bold"}), width=2),
-                        dbc.Col(dbc.Input(id='config-id', type='text', placeholder='Entrez l\'ID'), width=10),
-                    ],
-                    style={"margin-bottom": "10px"}
-                ),
-
-                # Bouton de soumission
-                dbc.Button("Soumettre", id="btn-submit-config", color="primary", style={"margin-top": "20px"}),
-            ],
-            style={
-                "padding": "20px",
-                "background-color": "#f9f9f9",
-                "border-radius": "8px",
-                "border": "1px solid #ddd",
-                "margin-bottom": "20px"
-            }
-        ),
-
         html.Button(
             "Lancer le traitement",
             id="btn-start-datapack",
@@ -94,32 +40,33 @@ layout = html.Div(
                 "color": "#333"
             }
         ),
-        html.Div(id="download-section", children=[], style={"margin-top": "20px"}),
-        html.Div(id="df-preview", style={"margin-top": "20px"}),
-        dcc.Interval(id="interval-datapack", interval=1000, n_intervals=0, disabled=True),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Label("Choisissez le format de téléchargement :", style={"color": "#333", "font-weight": "bold"}),
-                    width=4
+        html.Div(
+            id="download-section",
+            children=[
+                html.Button(
+                    "Téléchargement du datapack",
+                    id="btn-download-datapack",
+                    style={
+                        "background-color": "#28a745",
+                        "color": "white",
+                        "padding": "10px 20px",
+                        "border": "none",
+                        "border-radius": "5px",
+                        "cursor": "pointer",
+                        "margin-top": "20px",
+                        "display": "none"
+                    }
                 ),
-                dbc.Col(
-                    dbc.RadioItems(
-                        id='file-format',
-                        options=[
-                            {'label': 'CSV', 'value': 'csv'},
-                            {'label': 'PDF', 'value': 'pdf'},
-                            {'label': 'XLSX', 'value': 'xlsx'}
-                        ],
-                        value='csv',
-                        inline=True,
-                        labelStyle={'margin-right': '10px', 'font-weight': 'normal'}
-                    ),
-                    width=8
-                ),
+                html.A(
+                    id="download-link",
+                    href="",
+                    download="datapack.xlsx",
+                    style={"display": "none"}
+                )
             ],
             style={"margin-top": "20px"}
         ),
+        dcc.Interval(id="interval-datapack", interval=1000, n_intervals=0, disabled=True),
     ],
     style={
         "padding": "20px",
