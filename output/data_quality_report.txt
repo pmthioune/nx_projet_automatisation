@@ -1,0 +1,64 @@
+=== Data Quality Report ===
+
+Total Missing Values: 11
+
+=== Missing Values per Variable ===
+County: 0
+State: 0
+State FIPS Code: 0
+County FIPS Code: 0
+FIPS: 0
+Total Population: 0
+Male Population: 0
+Female Population: 0
+Total Race Responses: 1
+White Alone: 7
+Black or African American Alone: 3
+Hispanic or Latino: 0
+
+=== Outliers detected in variables ===
+State FIPS Code: 0 outliers
+County FIPS Code: 178 outliers
+FIPS: 0 outliers
+Total Population: 454 outliers
+Male Population: 446 outliers
+Female Population: 451 outliers
+Total Race Responses: 454 outliers
+White Alone: 403 outliers
+Black or African American Alone: 455 outliers
+Hispanic or Latino: 490 outliers
+
+=== Unique Values per Variable ===
+County: 1960 unique values
+State: 52 unique values
+State FIPS Code: 52 unique values
+County FIPS Code: 330 unique values
+FIPS: 3222 unique values
+Total Population: 3168 unique values
+Male Population: 3103 unique values
+Female Population: 3097 unique values
+Total Race Responses: 3167 unique values
+White Alone: 3141 unique values
+Black or African American Alone: 2062 unique values
+Hispanic or Latino: 2402 unique values
+
+=== Uniqueness (Percentage of Unique Values) ===
+County: 60.83% unique
+State: 1.61% unique
+State FIPS Code: 1.61% unique
+County FIPS Code: 10.24% unique
+FIPS: 100.00% unique
+Total Population: 98.32% unique
+Male Population: 96.31% unique
+Female Population: 96.12% unique
+Total Race Responses: 98.29% unique
+White Alone: 97.49% unique
+Black or African American Alone: 64.00% unique
+Hispanic or Latino: 74.55% unique
+
+=== Duplicates Analysis ===
+Total Duplicates: 0
+Duplicates based on ID column: ID column not found
+
+=== Timeliness Analysis ===
+Timeliness (Time Span in Days): Date column not provided or invalid

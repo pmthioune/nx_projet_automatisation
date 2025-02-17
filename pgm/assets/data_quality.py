@@ -8,13 +8,14 @@ if not os.path.exists(REPORT_DIR):
     os.makedirs(REPORT_DIR)
 
 # Data Quality Report Function
-def data_quality_report(df, id_column):
+def data_quality_report(df, id_column, date_column=None):
     """
-    Generate a detailed data quality report for the given dataframe.
+    Generate an advanced data quality report for the given dataframe.
 
     Parameters:
         df (pandas.DataFrame): The dataframe to analyze.
         id_column (str): The name of the ID column for checking duplicates.
+        date_column (str, optional): The name of the timestamp column for timeliness check.
 
     Returns:
         dict: A dictionary with the data quality metrics.
@@ -39,6 +40,9 @@ def data_quality_report(df, id_column):
     # Count of unique values per column
     report['unique_values'] = df.nunique()
 
+    # Uniqueness: Percentage of unique values per column
+    report['uniqueness'] = (df.nunique() / len(df)) * 100
+
     # Check for duplicate rows
     report['duplicates'] = df.duplicated().sum()
 
@@ -47,6 +51,13 @@ def data_quality_report(df, id_column):
         report['duplicates_by_id'] = df.duplicated(subset=[id_column]).sum()
     else:
         report['duplicates_by_id'] = 'ID column not found'
+
+    # Timeliness: Check for outdated data if a date column is provided
+    if date_column and date_column in df.columns:
+        df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+        report['timeliness'] = (df[date_column].max() - df[date_column].min()).days
+    else:
+        report['timeliness'] = 'Date column not provided or invalid'
 
     return report
 
@@ -57,20 +68,31 @@ def save_data_quality_report(report):
         report_file_path = os.path.join(REPORT_DIR, 'data_quality_report.txt')
 
         with open(report_file_path, 'w') as f:
+            f.write("=== Data Quality Report ===\n\n")
             f.write(f"Total Missing Values: {report['total_missing']}\n\n")
-            f.write("Missing Values per Variable:\n")
+
+            f.write("=== Missing Values per Variable ===\n")
             for var, missing in report['missing_per_variable'].items():
                 f.write(f"{var}: {missing}\n")
 
-            f.write("\nOutliers detected in variables:\n")
+            f.write("\n=== Outliers detected in variables ===\n")
             for var, outliers in report['outliers'].items():
                 f.write(f"{var}: {outliers} outliers\n")
 
-            f.write("\nUnique Values per Variable:\n")
+            f.write("\n=== Unique Values per Variable ===\n")
             for var, unique in report['unique_values'].items():
                 f.write(f"{var}: {unique} unique values\n")
 
-            f.write("\nDuplicates Detected: " + str(report['duplicates']) + "\n")
+            f.write("\n=== Uniqueness (Percentage of Unique Values) ===\n")
+            for var, uniqueness in report['uniqueness'].items():
+                f.write(f"{var}: {uniqueness:.2f}% unique\n")
+
+            f.write("\n=== Duplicates Analysis ===\n")
+            f.write(f"Total Duplicates: {report['duplicates']}\n")
+            f.write(f"Duplicates based on ID column: {report['duplicates_by_id']}\n")
+
+            f.write("\n=== Timeliness Analysis ===\n")
+            f.write(f"Timeliness (Time Span in Days): {report['timeliness']}\n")
 
         return report_file_path  # Renvoie le chemin du fichier créé
 
