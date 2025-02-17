@@ -11,10 +11,58 @@ data_quality_content = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(html.Div(id='total-missing-values', className='kpi-box'), width=3),
-                        dbc.Col(html.Div(id='total-duplicates', className='kpi-box'), width=3),
-                        dbc.Col(html.Div(id='total-outliers', className='kpi-box'), width=3),
-                        dbc.Col(html.Div(id='timeliness', className='kpi-box'), width=3),
+                        dbc.Col(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    [
+                                        html.H5("Total Missing Values", className="card-title"),
+                                        html.P(id='total-missing-values', className="card-text"),
+                                    ]
+                                ),
+                                className="kpi-card",
+                                style={"background-color": "#f8d7da", "color": "#721c24", "border": "1px solid #f5c6cb"}
+                            ),
+                            width=3
+                        ),
+                        dbc.Col(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    [
+                                        html.H5("Total Duplicates", className="card-title"),
+                                        html.P(id='total-duplicates', className="card-text"),
+                                    ]
+                                ),
+                                className="kpi-card",
+                                style={"background-color": "#d1ecf1", "color": "#0c5460", "border": "1px solid #bee5eb"}
+                            ),
+                            width=3
+                        ),
+                        dbc.Col(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    [
+                                        html.H5("Total Outliers", className="card-title"),
+                                        html.P(id='total-outliers', className="card-text"),
+                                    ]
+                                ),
+                                className="kpi-card",
+                                style={"background-color": "#fff3cd", "color": "#856404", "border": "1px solid #ffeeba"}
+                            ),
+                            width=3
+                        ),
+                        dbc.Col(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    [
+                                        html.H5("Timeliness", className="card-title"),
+                                        html.P(id='timeliness', className="card-text"),
+                                    ]
+                                ),
+                                className="kpi-card",
+                                style={"background-color": "#d4edda", "color": "#155724", "border": "1px solid #c3e6cb"}
+                            ),
+                            width=3
+                        ),
                     ],
                     className="kpi-row"
                 ),
