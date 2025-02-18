@@ -114,7 +114,7 @@ def register_callbacks(app):
                     color_discrete_sequence=px.colors.qualitative.Plotly
                 )
 
-                # Personnalisation du graphique
+                # Graphique missing values
                 missing_data_fig.update_layout(
                     title={
                         'text': "Missing Values per Variable",
@@ -137,7 +137,32 @@ def register_callbacks(app):
                 missing_data_fig.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
 
                 # Graphique de détection des outliers
-                outliers_detection_fig = px.box(numeric_df, title='Outliers Detection')
+                outliers_detection_fig = px.box(
+                    numeric_df,
+                    title='Outliers Detection',
+                    labels={'value': 'Value', 'variable': 'Variable'},
+                    color_discrete_sequence=px.colors.qualitative.Plotly
+                )
+                outliers_detection_fig.update_layout(
+                    title={
+                        'text': "Outliers per variable",
+                        'y': 0.9,
+                        'x': 0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top'
+                    },
+                    xaxis_title="Variables",
+                    yaxis_title="Values",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(
+                        family="Arial, sans-serif",
+                        size=12,
+                        color="RebeccaPurple"
+                    )
+                )
+
+                outliers_detection_fig.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
 
                 # Texte explicatif pour les doublons
                 if report['duplicates'] > 0:
@@ -178,15 +203,26 @@ def register_callbacks(app):
                     descriptive_stats_columns = [{"name": i, "id": i} for i in desc_df.columns]
                     descriptive_stats_data = desc_df.to_dict('records')
 
-                # Colonnes et données pour le tableau de qualité des données
+                # Table global de DQ
+
                 data_quality_table_columns = [
                     {"name": "Variable", "id": "Variable"},
-                    {"name": "Missing Values", "id": "Missing Values"},
-                    {"name": "Duplicates", "id": "Duplicates"}
+                    {"name": "Missing Values (%)", "id": "Missing Values (%)"},
+                    {"name": "Duplicates (%)", "id": "Duplicates (%)"},
+                    {"name": "Outliers (%)", "id": "Outliers (%)"}
                 ]
+
                 data_quality_table_data = [
-                    {"Variable": var, "Missing Values": val,
-                     "Duplicates": report['duplicates_by_id'] if var == 'id' else ''}
+                    {
+                        "Variable": var,
+                        "Missing Values": val,
+                        "Missing Values (%)": f"{(val / total_rows) * 100:.2f}%",
+                        "Duplicates": report['duplicates_by_id'] if var == 'id' else '',
+                        "Duplicates (%)": f"{(report['duplicates_by_id'] / total_rows) * 100:.2f}%" if var == 'id' else '',
+                        "Outliers": report['outliers'][var] if var in report['outliers'] else '',
+                        "Outliers (%)": f"{(report['outliers'][var] / total_rows) * 100:.2f}%" if var in report[
+                            'outliers'] else ''
+                    }
                     for var, val in report['missing_per_variable'].items()
                 ]
 
@@ -207,7 +243,7 @@ def register_callbacks(app):
                     summary,
                     descriptive_stats_columns,
                     descriptive_stats_data,
-                    duplicates_text  # Remplacer le graphique par le texte explicatif
+                    duplicates_text
                 )
             except Exception as e:
                 print(f"Error generating data quality report: {e}")
