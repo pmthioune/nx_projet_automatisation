@@ -62,27 +62,36 @@ def register_callbacks(app):
             Output('data-distribution-graph', 'figure'),
             Output('outliers-detection', 'figure'),
             Output('correlation-matrix', 'figure'),
-            Output('duplicates-graph', 'figure'),
+            Output('duplicates-by-key-graph', 'figure'),
             Output('data-quality-table', 'columns'),
             Output('data-quality-table', 'data'),
             Output('variable-selector', 'options'),
+            Output('duplicate-key-selector', 'options'),
             Output('variables-summary', 'children'),
             Output('descriptive-stats-table', 'columns'),
-            Output('descriptive-stats-table', 'data')
+            Output('descriptive-stats-table', 'data'),
+            Output('duplicates-graph', 'children')  # Ajout de la sortie pour le texte explicatif des doublons
         ],
-        [Input('url', 'pathname'), Input('variable-selector', 'value')]
+        [
+            Input('url', 'pathname'),
+            Input('variable-selector', 'value'),
+            Input('duplicate-key-selector', 'value')
+        ]
     )
-    def generate_data_quality_report(pathname, selected_variables):
+    def generate_data_quality_report(pathname, selected_variables, duplicate_key):
         if pathname == "/dataquality":
             try:
                 # Charger les données
                 df = load_data(input_file)
                 # Générer le rapport de qualité des données
                 report = data_quality_report(df, id_column='id')
+
                 # Sélectionner uniquement les colonnes numériques
                 numeric_df = df.select_dtypes(include='number')
+
                 # Options pour le dropdown
                 variable_options = [{'label': col, 'value': col} for col in df.columns]
+
                 # Enregistrer le rapport de qualité des données
                 save_data_quality_report(report)
 
@@ -94,30 +103,67 @@ def register_callbacks(app):
                 timeliness = f"Timeliness (days): {report['timeliness']}"
 
                 # Graphique des valeurs manquantes
+                # Graphique des valeurs manquantes
                 missing_data_fig = px.bar(
                     report['missing_per_variable'].reset_index(),
                     x='index',
                     y=0,
-                    title='Missing Values per Variable'
+                    title='Missing Values per Variable',
+                    labels={'index': 'Variable', 0: 'Missing Values'},
+                    color='index',
+                    color_discrete_sequence=px.colors.qualitative.Plotly
                 )
+
+                # Personnalisation du graphique
+                missing_data_fig.update_layout(
+                    title={
+                        'text': "Missing Values per Variable",
+                        'y': 0.9,
+                        'x': 0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top'
+                    },
+                    xaxis_title="Variables",
+                    yaxis_title="Number of Missing Values",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(
+                        family="Arial, sans-serif",
+                        size=12,
+                        color="RebeccaPurple"
+                    )
+                )
+
+                missing_data_fig.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
 
                 # Graphique de détection des outliers
                 outliers_detection_fig = px.box(numeric_df, title='Outliers Detection')
+
+                # Texte explicatif pour les doublons
+                if report['duplicates'] > 0:
+                    duplicates_text = html.Div([
+                        html.P(f"Il y a {report['duplicates']} valeurs dupliquées dans les données."),
+                        html.P(
+                            f"Ce qui représente {(report['duplicates'] / total_rows) * 100:.2f}% du total des lignes.")
+                    ])
+                else:
+                    duplicates_text = html.P("Aucune valeur dupliquée trouvée dans les données.")
+
                 # Graphique de distribution des données
                 data_distribution_fig = px.histogram(numeric_df, title='Data Distribution')
                 # Matrice de corrélation
                 correlation_matrix_fig = px.imshow(numeric_df.corr(), title='Correlation Matrix')
 
-                # Graphique des doublons
-                duplicates_fig = px.bar(
-                    pd.DataFrame({
-                        'Variable': ['Total Duplicates', 'Duplicates by ID'],
-                        'Count': [report['duplicates'], report['duplicates_by_id']]
-                    }),
-                    x='Variable',
-                    y='Count',
-                    title='Duplicate Values'
-                )
+                # Graphique des doublons par clé
+                if duplicate_key:
+                    duplicates_by_key = df[df.duplicated(subset=[duplicate_key], keep=False)]
+                    duplicates_by_key_fig = px.histogram(
+                        duplicates_by_key,
+                        x=duplicate_key,
+                        title=f'Duplicates by {duplicate_key}'
+                    )
+                else:
+                    duplicates_by_key_fig = {}
 
                 # Résumé des variables sélectionnées
                 if not selected_variables:
@@ -153,19 +199,20 @@ def register_callbacks(app):
                     data_distribution_fig,
                     outliers_detection_fig,
                     correlation_matrix_fig,
-                    duplicates_fig,
+                    duplicates_by_key_fig,
                     data_quality_table_columns,
                     data_quality_table_data,
                     variable_options,
+                    variable_options,
                     summary,
                     descriptive_stats_columns,
-                    descriptive_stats_data
+                    descriptive_stats_data,
+                    duplicates_text  # Remplacer le graphique par le texte explicatif
                 )
             except Exception as e:
                 print(f"Error generating data quality report: {e}")
-                return str(e), {}, {}, {}, {}, {}, [], [], [], [], [], [], [], []
-        return {}, {}, {}, {}, {}, {}, [], [], [], [], [], [], [], []
-
+                return str(e), {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, [], [], [], [], [], {}
+        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, [], [], [], [], [], {}
     @app.callback(
         [
             Output("progress-bar-datapack", "value"),

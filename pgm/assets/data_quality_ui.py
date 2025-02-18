@@ -71,71 +71,173 @@ data_quality_content = html.Div(
         ),
 
         # Graphs for data quality metrics
-        dcc.Graph(id='missing-data-graph'),
-        dcc.Graph(id='outliers-detection'),
-        dcc.Graph(id='duplicates-graph'),
-        dcc.Graph(id='data-distribution-graph'),
-        dcc.Graph(id='correlation-matrix'),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Missing Data", className="card-title"),
+                    dcc.Graph(id='missing-data-graph')
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Outliers Detection", className="card-title"),
+                    dcc.Graph(id='outliers-detection')
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Duplicates by Key", className="card-title"),
+                    dcc.Dropdown(id='duplicate-key-selector', options=[], multi=False, placeholder="Select key for duplicates"),
+                    dcc.Graph(id='duplicates-by-key-graph')
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Data Distribution", className="card-title"),
+                    dcc.Graph(id='data-distribution-graph')
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Correlation Matrix", className="card-title"),
+                    dcc.Graph(id='correlation-matrix')
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
 
         html.H4("Detailed DQ Report", style={"color": "#FF5733", "margin-top": "20px"}),
-
-        # Dropdown for selecting variables
-        dcc.Dropdown(id='variable-selector', options=[], multi=True, placeholder="Select variables"),
-
         html.H4("DQ Sum up", style={"textAlign": "center", "color": "#2c3e50"}),
 
         # Summary of selected variables
-        html.Div(id='variables-summary'),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Summary of Selected Variables", className="card-title"),
+                    html.Div(id='variables-summary', className="card-text")
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+
+        # Dropdown for selecting variables
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Select Variables", className="card-title"),
+                    dcc.Dropdown(id='variable-selector', options=[], multi=True, placeholder="Select variables")
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
 
         # Data quality report
-        html.Div(id='data-quality-report'),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Data Quality Report", className="card-title"),
+                    html.Div(id='data-quality-report', className="card-text")
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
 
         # Data quality table
-        dash_table.DataTable(
-            id='data-quality-table',
-            columns=[],
-            data=[],
-            style_table={'overflowX': 'auto'},
-            style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-                'fontWeight': 'bold',
-                'textAlign': 'center'
-            },
-            style_cell={
-                'backgroundColor': 'rgb(50, 50, 50)',
-                'color': 'white',
-                'textAlign': 'left',
-                'padding': '10px'
-            },
-            style_data_conditional=[
-                {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(40, 40, 40)'}
-            ]
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Data Quality Table", className="card-title"),
+                    dash_table.DataTable(
+                        id='data-quality-table',
+                        columns=[],
+                        data=[],
+                        style_table={'overflowX': 'auto'},
+                        style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white',
+                            'fontWeight': 'bold',
+                            'textAlign': 'center'
+                        },
+                        style_cell={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white',
+                            'textAlign': 'left',
+                            'padding': '10px'
+                        },
+                        style_data_conditional=[
+                            {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(40, 40, 40)'}
+                        ]
+                    )
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
         ),
 
         html.H4("Statistiques Descriptives", style={"color": "#FF5733", "margin-top": "20px"}),
 
         # Descriptive statistics table
-        dash_table.DataTable(
-            id='descriptive-stats-table',
-            columns=[],
-            data=[],
-            style_table={'overflowX': 'auto'},
-            style_header={
-                'backgroundColor': 'rgb(30, 30, 30)',
-                'color': 'white',
-                'fontWeight': 'bold',
-                'textAlign': 'center'
-            },
-            style_cell={
-                'backgroundColor': 'rgb(50, 50, 50)',
-                'color': 'white',
-                'textAlign': 'left',
-                'padding': '10px'
-            },
-            style_data_conditional=[
-                {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(40, 40, 40)'}
-            ]
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Descriptive Statistics", className="card-title"),
+                    dash_table.DataTable(
+                        id='descriptive-stats-table',
+                        columns=[],
+                        data=[],
+                        style_table={'overflowX': 'auto'},
+                        style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white',
+                            'fontWeight': 'bold',
+                            'textAlign': 'center'
+                        },
+                        style_cell={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white',
+                            'textAlign': 'left',
+                            'padding': '10px'
+                        },
+                        style_data_conditional=[
+                            {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(40, 40, 40)'}
+                        ]
+                    )
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
+        ),
+
+        # Placeholder for the duplicates text
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5("Duplicate Values Analysis", className="card-title"),
+                    html.Div(id='duplicates-graph', className="card-text")
+                ]
+            ),
+            className="mt-4",
+            style={"background-color": "#e9ecef", "border": "1px solid #dee2e6"}
         ),
 
         # Button to download the report

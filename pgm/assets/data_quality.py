@@ -7,6 +7,7 @@ REPORT_DIR = r"C:\Users\FayçalOUSSEINIMALI\Desktop\DASH\Dash\nx_projet_automati
 if not os.path.exists(REPORT_DIR):
     os.makedirs(REPORT_DIR)
 
+
 # Data Quality Report Function
 def data_quality_report(df, id_column, date_column=None):
     """
