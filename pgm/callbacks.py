@@ -59,18 +59,14 @@ def register_callbacks(app):
             Output('total-outliers', 'children'),
             Output('timeliness', 'children'),
             Output('missing-data-graph', 'figure'),
-            Output('data-distribution-graph', 'figure'),
             Output('outliers-detection', 'figure'),
-            Output('correlation-matrix', 'figure'),
             Output('duplicates-by-key-graph', 'figure'),
             Output('data-quality-table', 'columns'),
             Output('data-quality-table', 'data'),
             Output('variable-selector', 'options'),
             Output('duplicate-key-selector', 'options'),
-            Output('variables-summary', 'children'),
-            Output('descriptive-stats-table', 'columns'),
-            Output('descriptive-stats-table', 'data'),
-            Output('duplicates-graph', 'children')  # Ajout de la sortie pour le texte explicatif des doublons
+            Output('duplicates-graph', 'children'),
+            Output('data-description', 'children')
         ],
         [
             Input('url', 'pathname'),
@@ -83,17 +79,23 @@ def register_callbacks(app):
             try:
                 # Charger les données
                 df = load_data(input_file)
+                print("Data loaded successfully")
+
                 # Générer le rapport de qualité des données
                 report = data_quality_report(df, id_column='id')
+                print("Data quality report generated")
 
                 # Sélectionner uniquement les colonnes numériques
                 numeric_df = df.select_dtypes(include='number')
+                print("Numeric columns selected")
 
                 # Options pour le dropdown
                 variable_options = [{'label': col, 'value': col} for col in df.columns]
+                print("Variable options created")
 
                 # Enregistrer le rapport de qualité des données
                 save_data_quality_report(report)
+                print("Data quality report saved")
 
                 # KPI values
                 total_rows = len(df)
@@ -102,7 +104,6 @@ def register_callbacks(app):
                 total_outliers = f"Total Outliers: {report['outliers'].sum()} ({(report['outliers'].sum() / total_rows) * 100:.2f}%)"
                 timeliness = f"Timeliness (days): {report['timeliness']}"
 
-                # Graphique des valeurs manquantes
                 # Graphique des valeurs manquantes
                 missing_data_fig = px.bar(
                     report['missing_per_variable'].reset_index(),
@@ -113,8 +114,8 @@ def register_callbacks(app):
                     color='index',
                     color_discrete_sequence=px.colors.qualitative.Plotly
                 )
+                print("Missing data figure created")
 
-                # Graphique missing values
                 missing_data_fig.update_layout(
                     title={
                         'text': "Missing Values per Variable",
@@ -143,6 +144,8 @@ def register_callbacks(app):
                     labels={'value': 'Value', 'variable': 'Variable'},
                     color_discrete_sequence=px.colors.qualitative.Plotly
                 )
+                print("Outliers detection figure created")
+
                 outliers_detection_fig.update_layout(
                     title={
                         'text': "Outliers per variable",
@@ -173,11 +176,7 @@ def register_callbacks(app):
                     ])
                 else:
                     duplicates_text = html.P("Aucune valeur dupliquée trouvée dans les données.")
-
-                # Graphique de distribution des données
-                data_distribution_fig = px.histogram(numeric_df, title='Data Distribution')
-                # Matrice de corrélation
-                correlation_matrix_fig = px.imshow(numeric_df.corr(), title='Correlation Matrix')
+                print("Duplicates text created")
 
                 # Graphique des doublons par clé
                 if duplicate_key:
@@ -189,22 +188,9 @@ def register_callbacks(app):
                     )
                 else:
                     duplicates_by_key_fig = {}
-
-                # Résumé des variables sélectionnées
-                if not selected_variables:
-                    summary = "Aucune variable sélectionnée."
-                    descriptive_stats_columns = []
-                    descriptive_stats_data = []
-                else:
-                    summary = [html.P(f"Variable: {var}") for var in selected_variables]
-                    desc_df = df[selected_variables].describe().reset_index()
-                    summary.append(html.P(desc_df.to_string()))
-
-                    descriptive_stats_columns = [{"name": i, "id": i} for i in desc_df.columns]
-                    descriptive_stats_data = desc_df.to_dict('records')
+                print("Duplicates by key figure created")
 
                 # Table global de DQ
-
                 data_quality_table_columns = [
                     {"name": "Variable", "id": "Variable"},
                     {"name": "Missing Values (%)", "id": "Missing Values (%)"},
@@ -225,6 +211,28 @@ def register_callbacks(app):
                     }
                     for var, val in report['missing_per_variable'].items()
                 ]
+                print("Data quality table created")
+
+                # Description de la base de données et des statistiques descriptives
+
+                data_description = html.Div([
+                    html.Ul([html.Li(f"Variable: {var}") for var in df.columns])
+                ])
+                print("Data description created")
+
+                # Résumé des variables sélectionnées
+                if not selected_variables:
+                    summary = "Aucune variable sélectionnée."
+                    descriptive_stats_columns = []
+                    descriptive_stats_data = []
+                else:
+                    summary = [html.P(f"Variable: {var}") for var in selected_variables]
+                    desc_df = df[selected_variables].describe().reset_index()
+                    summary.append(html.P(desc_df.to_string()))
+
+                    descriptive_stats_columns = [{"name": i, "id": i} for i in desc_df.columns]
+                    descriptive_stats_data = desc_df.to_dict('records')
+                print("Summary created")
 
                 return (
                     total_missing_values,
@@ -232,23 +240,20 @@ def register_callbacks(app):
                     total_outliers,
                     timeliness,
                     missing_data_fig,
-                    data_distribution_fig,
                     outliers_detection_fig,
-                    correlation_matrix_fig,
                     duplicates_by_key_fig,
                     data_quality_table_columns,
                     data_quality_table_data,
                     variable_options,
                     variable_options,
-                    summary,
-                    descriptive_stats_columns,
-                    descriptive_stats_data,
-                    duplicates_text
+                    duplicates_text,
+                    data_description
                 )
             except Exception as e:
                 print(f"Error generating data quality report: {e}")
-                return str(e), {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, [], [], [], [], [], {}
-        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, [], [], [], [], [], {}
+                return str(e), {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+
     @app.callback(
         [
             Output("progress-bar-datapack", "value"),

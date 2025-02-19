@@ -92,7 +92,7 @@ data_quality_content = html.Div(
             style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
         ),
 
-        # Placeholder for the duplicates text
+        # Duplicates text
         dbc.Card(
             dbc.CardBody(
                 [
@@ -149,96 +149,20 @@ data_quality_content = html.Div(
         ),
 
         # Summary of selected variables
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H5("Summary of Selected Variables", className="card-title"),
-                    html.Div(id='variables-summary', className="card-text")
-                ]
-            ),
-            className="mt-4",
-            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
-        ),
 
-        # Dropdown for selecting variables
+        # Description of the data
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.H5("Select Variables", className="card-title"),
+                    html.H5("Dataset Overview", className="card-title"),
+                    html.Div(id='data-description', className="card-text"),
+                    html.H5("Variables description", className="card-title"),
                     dcc.Dropdown(id='variable-selector', options=[], multi=True, placeholder="Select variables")
                 ]
             ),
             className="mt-4",
             style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
         ),
-
-        # Data quality report
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H5("Data Quality Report", className="card-title"),
-                    html.Div(id='data-quality-report', className="card-text")
-                ]
-            ),
-            className="mt-4",
-            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
-        ),
-
-        html.H4("Statistiques Descriptives", style={"color": "#FF5733", "margin-top": "20px"}),
-
-        # Descriptive statistics table
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H5("Descriptive Statistics", className="card-title"),
-                    dash_table.DataTable(
-                        id='descriptive-stats-table',
-                        columns=[],
-                        data=[],
-                        style_table={'overflowX': 'auto'},
-                        style_header={
-                            'backgroundColor': 'rgb(30, 30, 30)',
-                            'color': 'white',
-                            'fontWeight': 'bold',
-                            'textAlign': 'center'
-                        },
-                        style_cell={
-                            'backgroundColor': 'rgb(50, 50, 50)',
-                            'color': 'white',
-                            'textAlign': 'left',
-                            'padding': '10px'
-                        },
-                        style_data_conditional=[
-                            {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(40, 40, 40)'}
-                        ]
-                    )
-                ]
-            ),
-            className="mt-4",
-            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
-        ),
-
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H5("Data Distribution", className="card-title"),
-                    dcc.Graph(id='data-distribution-graph')
-                ]
-            ),
-            className="mt-4",
-            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
-        ),
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H5("Correlation Matrix", className="card-title"),
-                    dcc.Graph(id='correlation-matrix')
-                ]
-            ),
-            className="mt-4",
-            style={"background-color": "#f8f9fa", "border": "1px solid #dee2e6"}
-        ),
-
 
         # Button to download the report
         dbc.Button(
