@@ -3,6 +3,7 @@ from dash import Input, Output, State, ctx, no_update
 from pgm.callbacks.data_quality_callback import register_data_quality_callbacks
 from pgm.callbacks.language_callback import register_language_callbacks
 from pgm.callbacks.progress_callback import register_progress_callbacks
+from pgm.callbacks.gap_analysis_callback import register_gap_analysis_callbacks
 
 
 def register_callbacks(app):

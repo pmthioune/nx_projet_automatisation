@@ -2,6 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
 import os
+import numpy as np
 
 REPORT_DIR = r"C:\Users\FayçalOUSSEINIMALI\Desktop\DASH\Dash\nx_projet_automatisation\output"
 if not os.path.exists(REPORT_DIR):
@@ -21,42 +22,66 @@ def data_quality_report(df, id_column, date_column=None):
     Returns:
         dict: A dictionary with the data quality metrics.
     """
-    report = {}
+    report = {'total_missing': df.isnull().sum().sum(), 'missing_per_variable': df.isnull().sum(),
+              'single_value_columns': df.nunique()[df.nunique() == 1].index.tolist(),
+              'summary_statistics': df.describe(include='all')}
 
-    # Total missing values in the dataframe
-    report['total_missing'] = df.isnull().sum().sum()
+    # 🔹 Valeurs manquantes
 
-    # Missing values per column
-    report['missing_per_variable'] = df.isnull().sum()
+    # 🔹 Colonnes contenant une seule valeur (peu utiles)
 
-    # Select only numeric columns for outlier detection
+    # 🔹 Statistiques descriptives générales
+
+    # 🔹 Sélection des colonnes numériques
     numeric_df = df.select_dtypes(include=['number'])
 
-    # Outlier detection using the Interquartile Range (IQR) method
-    Q1 = numeric_df.quantile(0.25)
-    Q3 = numeric_df.quantile(0.75)
-    IQR = Q3 - Q1
-    report['outliers'] = ((numeric_df < (Q1 - 1.5 * IQR)) | (numeric_df > (Q3 + 1.5 * IQR))).sum()
+    if not numeric_df.empty:
+        # 🔹 Détection des outliers par IQR
+        Q1 = numeric_df.quantile(0.25)
+        Q3 = numeric_df.quantile(0.75)
+        IQR = Q3 - Q1
+        report['outliers'] = ((numeric_df < (Q1 - 1.5 * IQR)) | (numeric_df > (Q3 + 1.5 * IQR))).sum()
 
-    # Count of unique values per column
+        # 🔹 Détection des outliers par Z-score
+        z_scores = np.abs((numeric_df - numeric_df.mean()) / numeric_df.std())
+        report['outliers_zscore'] = (z_scores > 3).sum()
+
+        # 🔹 Corrélation entre colonnes numériques
+        correlation_matrix = numeric_df.corr()
+        high_corr_pairs = [(col1, col2, correlation_matrix.loc[col1, col2])
+                           for col1 in correlation_matrix.columns
+                           for col2 in correlation_matrix.columns
+                           if col1 != col2 and np.abs(correlation_matrix.loc[col1, col2]) > 0.8]
+        report['highly_correlated_columns'] = high_corr_pairs
+
+    else:
+        report['outliers_iqr'] = "No numerical columns"
+        report['outliers_zscore'] = "No numerical columns"
+        report['highly_correlated_columns'] = "No numerical columns"
+
+    # 🔹 Vérification des types de données
+    report['data_types'] = df.dtypes
+
+    # 🔹 Nombre de valeurs uniques
     report['unique_values'] = df.nunique()
+    report['uniqueness'] = (df.nunique() / len(df) * 100).round(2)
 
-    # Uniqueness: Percentage of unique values per column
-    report['uniqueness'] = (df.nunique() / len(df)) * 100
-
-    # Check for duplicate rows
+    # 🔹 Détection des doublons
     report['duplicates'] = df.duplicated().sum()
 
-    # Check for duplicates based on the ID column, if it exists
+    # 🔹 Vérification des doublons basés sur `id_column`
     if id_column in df.columns:
         report['duplicates_by_id'] = df.duplicated(subset=[id_column]).sum()
     else:
         report['duplicates_by_id'] = 'ID column not found'
 
-    # Timeliness: Check for outdated data if a date column is provided
+    # 🔹 Vérification de la fraîcheur des données (`timeliness`)
     if date_column and date_column in df.columns:
-        df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
-        report['timeliness'] = (df[date_column].max() - df[date_column].min()).days
+        date_series = pd.to_datetime(df[date_column], errors='coerce')
+        if date_series.isna().all():
+            report['timeliness'] = 'All dates are invalid'
+        else:
+            report['timeliness'] = (date_series.max() - date_series.min()).days
     else:
         report['timeliness'] = 'Date column not provided or invalid'
 
