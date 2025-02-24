@@ -1,36 +1,35 @@
-import dash
-from dash import html, dcc, Input, Output
-from sidebar import sidebar
-import datapacks
-import data_quality
-import gap_analysis
+import plotly.graph_objects as go
+import plotly.express as px
 
-# Initialiser l'application Dash
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
-app.title = "Analyse des Données"
+# 📌 Palette de couleurs dynamiques
+COLOR_PALETTE = px.colors.qualitative.Set1
 
-# Mise en page principale avec sidebar
-app.layout = html.Div([
-    dcc.Location(id="url", refresh=False),  # Gère la navigation entre pages
-    sidebar,
-    html.Div(id="page-content", style={"marginLeft": "250px", "padding": "20px"})
-])
+# 📌 Création de l'histogramme avec années sur l'axe des abscisses
+fig_histogram = go.Figure()
 
-# Callback pour gérer la navigation
-@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
-def display_page(pathname):
-    if pathname == "/data_quality":
-        return data_quality.layout
-    elif pathname == "/gap_analysis":
-        return gap_analysis.layout
-    elif pathname == "/datapacks":
-        return datapacks.layout
-    else:
-        return html.Div([
-            html.H1("Bienvenue sur l'outil d'Analyse des Données"),
-            html.P("Sélectionnez une section à gauche pour commencer.")
-        ])
+for idx, name in enumerate(selected_files):
+    df = DATASETS[name]
 
-# Lancer l'application
-if __name__ == "__main__":
-    app.run_server(debug=True)
+    fig_histogram.add_trace(go.Bar(  # 📌 Utilisation de go.Bar pour une meilleure lisibilité
+        x=df["Année"],  # 📌 Affichage des années sur l'axe X
+        y=df["Valeur"],
+        name=name,
+        marker=dict(
+            color=COLOR_PALETTE[idx % len(COLOR_PALETTE)],  # 📌 Couleur selon la position
+            line=dict(width=0.5)
+        ),
+        opacity=0.8
+    ))
+
+# 📌 Mise en page pour améliorer l'affichage des années
+fig_histogram.update_layout(
+    title="Comparaison des valeurs par année",
+    barmode="group",  # 📌 Affichage côte à côte
+    bargap=0.2,  # 📌 Petit espace entre les barres
+    xaxis=dict(
+        title="Années",
+        tickmode="linear",  # 📌 Affichage des années sans saut
+        tickangle=-45,  # 📌 Rotation des années pour lisibilité
+    ),
+    yaxis=dict(title="Valeurs"),
+)
