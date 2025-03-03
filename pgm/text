@@ -1,67 +1,43 @@
-' Create a new module in the VBA editor and paste this code
-Option Explicit
-
-' Adds a custom tab and button to Excel ribbon
-Sub AddRibbon()
-    Dim cb As CommandBar
-    Dim btn As CommandBarButton
+' Macro to open another Excel file in the same folder and update coversheet
+Sub UpdateCoversheet()
+    Dim wb As Workbook, wbTarget As Workbook
+    Dim wsParams As Worksheet, wsCover As Worksheet
+    Dim filePath As String, fileName As String
+    Dim id_datapack As String, name_datapack As String, creation_date As String
     
+    ' Set parameters worksheet
+    Set wsParams = ThisWorkbook.Sheets("parameters")
+    
+    ' Get parameters
+    id_datapack = wsParams.Range("A2").Value
+    name_datapack = wsParams.Range("B2").Value
+    creation_date = wsParams.Range("C2").Value
+    
+    ' Get current workbook path
+    filePath = ThisWorkbook.Path & "\" 
+    fileName = "target_file.xlsx" ' Change as needed
+    
+    ' Open target workbook
     On Error Resume Next
-    Set cb = Application.CommandBars("Worksheet Menu Bar")
+    Set wbTarget = Workbooks.Open(filePath & fileName)
     On Error GoTo 0
     
-    If Not cb Is Nothing Then
-        Set btn = cb.Controls.Add(Type:=msoControlButton, Temporary:=True)
-        btn.Caption = "Apply Conditional Formatting"
-        btn.OnAction = "ApplyConditionalFormatting"
-    End If
-End Sub
-
-' Function to apply conditional formatting
-Sub ApplyConditionalFormatting()
-    Dim ws As Worksheet
-    Dim rng As Range
-    Dim cf As FormatCondition
-    
-    Set ws = ActiveSheet
-    On Error Resume Next
-    Set rng = Application.Selection
-    On Error GoTo 0
-    
-    If rng Is Nothing Then
-        MsgBox "Please select a range before applying conditional formatting.", vbExclamation
+    If wbTarget Is Nothing Then
+        MsgBox "Target file not found!", vbExclamation
         Exit Sub
     End If
     
-    ' Clear existing conditional formats
-    rng.FormatConditions.Delete
+    ' Set target worksheet
+    Set wsCover = wbTarget.Sheets("coversheet")
     
-    ' Apply a rule: highlight cells greater than a threshold
-    Set cf = rng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlGreater, Formula1:=50)
-    cf.Interior.Color = RGB(255, 0, 0) ' Red background
+    ' Write values
+    wsCover.Range("A1").Value = id_datapack
+    wsCover.Range("B1").Value = name_datapack
+    wsCover.Range("C1").Value = creation_date
     
-    ' Apply a rule: highlight cells less than a threshold
-    Set cf = rng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlLess, Formula1:=20)
-    cf.Interior.Color = RGB(0, 255, 0) ' Green background
+    ' Save and close
+    wbTarget.Save
+    wbTarget.Close
     
-    ' Apply a rule: highlight cells between two values
-    Set cf = rng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlBetween, Formula1:=30, Formula2:=40)
-    cf.Interior.Color = RGB(255, 255, 0) ' Yellow background
-    
-    MsgBox "Conditional formatting applied successfully!", vbInformation
-End Sub
-
-' Macro to ask for the current year and update text cells in multiple sheets
-Sub UpdateYearInSheets()
-    Dim ws As Worksheet
-    Dim yearValue As String
-    
-    yearValue = InputBox("Entrez l'année en cours :", "Mise à jour de l'année")
-    If yearValue = "" Then Exit Sub ' Cancel action if no input
-    
-    For Each ws In ThisWorkbook.Sheets
-        ws.Cells.Replace What:="{YEAR}", Replacement:=yearValue, LookAt:=xlPart, MatchCase:=False
-    Next ws
-    
-    MsgBox "Mise à jour terminée !", vbInformation
+    MsgBox "Coversheet updated successfully!", vbInformation
 End Sub
