@@ -1,43 +1,38 @@
-' Macro to open another Excel file in the same folder and update coversheet
-Sub UpdateCoversheet()
-    Dim wb As Workbook, wbTarget As Workbook
-    Dim wsParams As Worksheet, wsCover As Worksheet
-    Dim filePath As String, fileName As String
-    Dim id_datapack As String, name_datapack As String, creation_date As String
-    
-    ' Set parameters worksheet
-    Set wsParams = ThisWorkbook.Sheets("parameters")
-    
-    ' Get parameters
-    id_datapack = wsParams.Range("A2").Value
-    name_datapack = wsParams.Range("B2").Value
-    creation_date = wsParams.Range("C2").Value
-    
-    ' Get current workbook path
-    filePath = ThisWorkbook.Path & "\" 
-    fileName = "target_file.xlsx" ' Change as needed
-    
-    ' Open target workbook
+Sub CopyAndRedefineRange()
+    Dim ws As Worksheet
+    Dim originalRange As Range
+    Dim newRange As Range
+    Dim targetCell As Range
+    Dim namedRange As Name
+    Dim cellName As String
+
+    ' Set the active worksheet
+    Set ws = ActiveSheet
+
+    ' Check if the name "plage_transitions_matrice" exists
     On Error Resume Next
-    Set wbTarget = Workbooks.Open(filePath & fileName)
+    Set namedRange = ThisWorkbook.Names("plage_transitions_matrice")
     On Error GoTo 0
-    
-    If wbTarget Is Nothing Then
-        MsgBox "Target file not found!", vbExclamation
+
+    If namedRange Is Nothing Then
+        MsgBox "The name 'plage_transitions_matrice' does not exist.", vbExclamation
         Exit Sub
     End If
-    
-    ' Set target worksheet
-    Set wsCover = wbTarget.Sheets("coversheet")
-    
-    ' Write values
-    wsCover.Range("A1").Value = id_datapack
-    wsCover.Range("B1").Value = name_datapack
-    wsCover.Range("C1").Value = creation_date
-    
-    ' Save and close
-    wbTarget.Save
-    wbTarget.Close
-    
-    MsgBox "Coversheet updated successfully!", vbInformation
+
+    ' Define the original range
+    Set originalRange = namedRange.RefersToRange
+
+    ' Copy the original range and paste it three rows below
+    Set newRange = originalRange.Offset(originalRange.Rows.Count + 3, 0)
+    originalRange.Copy Destination:=newRange
+
+    ' Redefine the name "plage_transitions_matrice" to the new range
+    namedRange.RefersTo = newRange
+
+    ' Define the name for the cell at the 3rd column and 6th row of the new range
+    Set targetCell = newRange.Cells(6, 3)
+    cellName = "Target_Cell_Name" ' Replace with the desired name
+    ThisWorkbook.Names.Add Name:=cellName, RefersTo:=targetCell
+
+    MsgBox "The range has been copied, and the names have been updated successfully.", vbInformation
 End Sub
