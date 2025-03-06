@@ -1,38 +1,26 @@
-Sub CopyAndRedefineRange()
+Sub ExportWorksheetsToCSV()
     Dim ws As Worksheet
-    Dim originalRange As Range
-    Dim newRange As Range
-    Dim targetCell As Range
-    Dim namedRange As Name
-    Dim cellName As String
+    Dim wbCSV As Workbook
+    Dim csvPath As String
+    Dim fileName As String
 
-    ' Set the active worksheet
-    Set ws = ActiveSheet
+    ' Set the destination folder to the current workbook's path
+    csvPath = ThisWorkbook.Path & "\"
 
-    ' Check if the name "plage_transitions_matrice" exists
-    On Error Resume Next
-    Set namedRange = ThisWorkbook.Names("plage_transitions_matrice")
-    On Error GoTo 0
+    For Each ws In ThisWorkbook.Worksheets
+        ' Copy the worksheet to a new workbook
+        ws.Copy
+        Set wbCSV = ActiveWorkbook
+        
+        ' Create a valid file name (note: worksheet names must not contain invalid characters)
+        fileName = csvPath & ws.Name & ".csv"
+        
+        ' Save the new workbook as a CSV file
+        wbCSV.SaveAs Filename:=fileName, FileFormat:=xlCSV, CreateBackup:=False
+        
+        ' Close the CSV workbook without saving changes
+        wbCSV.Close SaveChanges:=False
+    Next ws
 
-    If namedRange Is Nothing Then
-        MsgBox "The name 'plage_transitions_matrice' does not exist.", vbExclamation
-        Exit Sub
-    End If
-
-    ' Define the original range
-    Set originalRange = namedRange.RefersToRange
-
-    ' Copy the original range and paste it three rows below
-    Set newRange = originalRange.Offset(originalRange.Rows.Count + 3, 0)
-    originalRange.Copy Destination:=newRange
-
-    ' Redefine the name "plage_transitions_matrice" to the new range
-    namedRange.RefersTo = newRange
-
-    ' Define the name for the cell at the 3rd column and 6th row of the new range
-    Set targetCell = newRange.Cells(6, 3)
-    cellName = "Target_Cell_Name" ' Replace with the desired name
-    ThisWorkbook.Names.Add Name:=cellName, RefersTo:=targetCell
-
-    MsgBox "The range has been copied, and the names have been updated successfully.", vbInformation
+    MsgBox "Exportation des onglets en fichiers CSV terminée.", vbInformation
 End Sub
