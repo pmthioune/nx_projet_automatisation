@@ -70,3 +70,60 @@ Bonne journée,
 [Votre Nom]
 [Votre Rôle]
 [Votre Entreprise]
+
+Compte Rendu – Suivi des Travaux d’Automatisation des Datapacks
+
+Échange sur l’automatisation des datapacks
+Lors de la réunion, nous avons discuté de l’état d’avancement des tests de non-régression, de l’intégration de la nouvelle segmentation et de l’optimisation du pipeline d’automatisation. L’objectif est de garantir la fiabilité et la continuité des processus.
+
+Discussion sur la migration vers Dataiku
+L’équipe a présenté l’avancement de la migration :
+
+La bascule des programmes locaux vers Dataiku a été effectuée avec succès.
+
+L’extraction via SAS et l’export vers Stark (S3) ont été validés.
+
+L’adaptation des programmes à Dataiku est également terminée.
+
+Analyse de la migration des codes de calcul des indicateurs
+Deux axes ont été abordés :
+
+Pour RISQ (défaut, migration, LGD, recouvrements, provisions), la migration des codes de calcul est terminée.
+
+Pour DFIN (encours, prépaiements, octrois, pertes, provisions), la migration est en cours, avec des tests complémentaires prévus.
+
+Présentation de la production des datapacks et des gap analysis
+L’équipe a détaillé la phase de production :
+
+L’automatisation complète des datapacks et le développement de l’interface user-friendly sont en phase de finalisation.
+
+Des tests du pipeline ont été réalisés sur l’historique des données (2007-2023).
+En complément, les fichiers de gap analysis (RACER4 vs RACER4 et JUNON5 vs JUNON5, avant migration Python/PySpark vs après) ont été présentés pour illustrer les écarts et optimiser le processus.
+
+Documentation et transfert des connaissances
+
+La rédaction de la documentation détaillant les étapes de production est en cours.
+
+Des ateliers de passation sont organisés pour assurer le transfert de connaissances aux équipes RISQ.
+
+Discussion sur l’homologation et les impacts futurs
+
+L’homologation des données UV MOD Target vs UV MOD Legacy (2023-2024) est en cours.
+
+L’impact de la nouvelle segmentation IFRS9 (entrée en vigueur en 2024) sera étroitement suivi.
+
+Prochaines étapes
+
+Poursuivre les tests de non-régression et procéder aux ajustements si nécessaire.
+
+Finaliser l’automatisation et l’interface avant la mise en production.
+
+Conclure l’homologation et suivre l’impact de la segmentation IFRS9.
+
+N’hésitez pas à me faire part de vos remarques ou questions.
+
+Bien cordialement,
+
+[Votre Nom]
+[Votre Rôle]
+[Votre Entreprise]
