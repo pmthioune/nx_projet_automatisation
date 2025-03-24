@@ -1,26 +1,72 @@
-Sub ExportWorksheetsToCSV()
-    Dim ws As Worksheet
-    Dim wbCSV As Workbook
-    Dim csvPath As String
-    Dim fileName As String
+Objet : [CR] Réunion de suivi des travaux d’automatisation des datapacks – [Date]
 
-    ' Set the destination folder to the current workbook's path
-    csvPath = ThisWorkbook.Path & "\"
+Bonjour à tous,
 
-    For Each ws In ThisWorkbook.Worksheets
-        ' Copy the worksheet to a new workbook
-        ws.Copy
-        Set wbCSV = ActiveWorkbook
-        
-        ' Create a valid file name (note: worksheet names must not contain invalid characters)
-        fileName = csvPath & ws.Name & ".csv"
-        
-        ' Save the new workbook as a CSV file
-        wbCSV.SaveAs Filename:=fileName, FileFormat:=xlCSV, CreateBackup:=False
-        
-        ' Close the CSV workbook without saving changes
-        wbCSV.Close SaveChanges:=False
-    Next ws
+Suite à la réunion de suivi des travaux d’automatisation des datapacks du [date], veuillez trouver ci-dessous les principaux points abordés et décisions prises.
 
-    MsgBox "Exportation des onglets en fichiers CSV terminée.", vbInformation
-End Sub
+1. Avancement des travaux
+✅ Automatisation des datapacks
+
+Tests de non-régression : En cours
+
+Intégration de la nouvelle segmentation : En cours
+
+Optimisation du pipeline d’automatisation : En cours
+
+✅ Migration vers Dataiku
+
+Bascule des programmes locaux vers Dataiku : Terminée
+
+Extraction via SAS et export vers Stark (S3) : Terminé
+
+Adaptation des programmes à Dataiku : Terminée
+
+✅ Migration des codes de calcul des indicateurs
+
+RISQ (défaut, migration, LGD, recouvrements, provisions) : Terminé
+
+DFIN (encours, prépaiements, octrois, pertes, provisions) : En cours
+
+✅ Production des datapacks et gap analysis
+
+Automatisation complète : En finalisation
+
+Développement de l'interface user-friendly : En finalisation
+
+Tests du pipeline sur l’historique de données (2007-2023) : En cours
+
+✅ Documentation et transfert des connaissances
+
+Documentation des étapes de production : En cours
+
+Transfert des connaissances aux équipes RISQ : En cours (via ateliers de passation)
+
+✅ Homologation & impacts
+
+Homologation des données UV MOD Target vs UV MOD Legacy (2023-2024) : En cours
+
+Évaluation de l’impact de l’intégration de la nouvelle segmentation IFRS9 (entrée en vigueur en 2024) : À surveiller
+
+2. Points de vigilance
+⚠️ Validation des tests de non-régression : Des écarts pourraient nécessiter des ajustements.
+⚠️ Migration des indicateurs DFIN : Suivre la bonne intégration des calculs dans Dataiku.
+⚠️ Finalisation de l'interface : Tester l’ergonomie et la robustesse avant mise en production.
+⚠️ Homologation UV MOD Target vs Legacy : Assurer la cohérence des résultats.
+
+3. Prochaines étapes
+Poursuite des tests et validation des ajustements nécessaires.
+
+Finalisation et mise en production de l’interface utilisateur.
+
+Validation de l’homologation UV MOD Target vs Legacy.
+
+Suivi des impacts liés à la nouvelle segmentation IFRS9.
+
+Vous trouverez en pièce jointe les fichiers de gap analysis RACER4 vs RACER4 et JUNON5 vs JUNON5 avant migration (Python/PySpark) vs après, permettant d’analyser les écarts entre les deux versions.
+
+N’hésitez pas à compléter ou à poser vos questions si besoin.
+
+Bonne journée,
+[Votre Nom]
+[Votre Rôle]
+[Votre Entreprise]
