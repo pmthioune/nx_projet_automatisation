@@ -1,129 +1,44 @@
-Objet : [CR] Réunion de suivi des travaux d’automatisation des datapacks – [Date]
+. Contexte et objectifs du workshop
+Dans le cadre de la titrisation, nous devons automatiser le calcul des indicateurs des datapacks (RACER, JUNON, etc.). Ce workshop a été organisé afin de discuter :
 
-Bonjour à tous,
+De l’intégration des données pertes et provisions dans nos travaux.
 
-Suite à la réunion de suivi des travaux d’automatisation des datapacks du [date], veuillez trouver ci-dessous les principaux points abordés et décisions prises.
+Du processus d’extraction PES et PED des données encours, pertes et provisions.
 
-1. Avancement des travaux
-✅ Automatisation des datapacks
+2. Échanges sur l’intégration des données pertes et provisions
+Discussion sur la disponibilité des données et les sources à privilégier.
 
-Tests de non-régression : En cours
+Identification des règles de gestion à appliquer pour garantir la cohérence et la fiabilité des indicateurs.
 
-Intégration de la nouvelle segmentation : En cours
+Analyse des impacts du décommissionnement de SAFIR sur la récupération des données pertes et provisions.
 
-Optimisation du pipeline d’automatisation : En cours
+3. Extraction des données PES et PED
+Rappel du processus d’extraction des données encours, pertes et provisions.
 
-✅ Migration vers Dataiku
+Validation du format des données et des ajustements nécessaires pour leur exploitation dans le pipeline d’automatisation.
 
-Bascule des programmes locaux vers Dataiku : Terminée
+Discussion sur l’intégration automatique de ces données dans le calcul des indicateurs des datapacks.
 
-Extraction via SAS et export vers Stark (S3) : Terminé
+4. Prochaines étapes et actions à mener
+Action	Responsable	Échéance
+Ajout du Booking Entity dans l’EDB	Moussa	[À compléter]
+Extraction des données SAFIR au 04/2024	Amélie	[À compléter]
+Extraction des données sur la nouvelle plateforme et étude d’impact	BdfScr / Nexialog	[À compléter]
+Intégration des données extraites dans le pipeline d’automatisation	Nexialog	[À compléter]
+5. Points d’attention
+Vérifier la qualité des données extraites pour éviter des écarts dans les indicateurs.
 
-Adaptation des programmes à Dataiku : Terminée
+Assurer une cohérence entre les nouvelles sources de données et celles précédemment utilisées.
 
-✅ Migration des codes de calcul des indicateurs
+Anticiper d’éventuelles évolutions réglementaires impactant le calcul des pertes et provisions.
 
-RISQ (défaut, migration, LGD, recouvrements, provisions) : Terminé
+Prochain point de suivi : [À définir]
 
-DFIN (encours, prépaiements, octrois, pertes, provisions) : En cours
+Merci,
 
-✅ Production des datapacks et gap analysis
 
-Automatisation complète : En finalisation
 
-Développement de l'interface user-friendly : En finalisation
 
-Tests du pipeline sur l’historique de données (2007-2023) : En cours
 
-✅ Documentation et transfert des connaissances
 
-Documentation des étapes de production : En cours
 
-Transfert des connaissances aux équipes RISQ : En cours (via ateliers de passation)
-
-✅ Homologation & impacts
-
-Homologation des données UV MOD Target vs UV MOD Legacy (2023-2024) : En cours
-
-Évaluation de l’impact de l’intégration de la nouvelle segmentation IFRS9 (entrée en vigueur en 2024) : À surveiller
-
-2. Points de vigilance
-⚠️ Validation des tests de non-régression : Des écarts pourraient nécessiter des ajustements.
-⚠️ Migration des indicateurs DFIN : Suivre la bonne intégration des calculs dans Dataiku.
-⚠️ Finalisation de l'interface : Tester l’ergonomie et la robustesse avant mise en production.
-⚠️ Homologation UV MOD Target vs Legacy : Assurer la cohérence des résultats.
-
-3. Prochaines étapes
-Poursuite des tests et validation des ajustements nécessaires.
-
-Finalisation et mise en production de l’interface utilisateur.
-
-Validation de l’homologation UV MOD Target vs Legacy.
-
-Suivi des impacts liés à la nouvelle segmentation IFRS9.
-
-Vous trouverez en pièce jointe les fichiers de gap analysis RACER4 vs RACER4 et JUNON5 vs JUNON5 avant migration (Python/PySpark) vs après, permettant d’analyser les écarts entre les deux versions.
-
-N’hésitez pas à compléter ou à poser vos questions si besoin.
-
-Bonne journée,
-[Votre Nom]
-[Votre Rôle]
-[Votre Entreprise]
-
-Compte Rendu – Suivi des Travaux d’Automatisation des Datapacks
-
-Échange sur l’automatisation des datapacks
-Lors de la réunion, nous avons discuté de l’état d’avancement des tests de non-régression, de l’intégration de la nouvelle segmentation et de l’optimisation du pipeline d’automatisation. L’objectif est de garantir la fiabilité et la continuité des processus.
-
-Discussion sur la migration vers Dataiku
-L’équipe a présenté l’avancement de la migration :
-
-La bascule des programmes locaux vers Dataiku a été effectuée avec succès.
-
-L’extraction via SAS et l’export vers Stark (S3) ont été validés.
-
-L’adaptation des programmes à Dataiku est également terminée.
-
-Analyse de la migration des codes de calcul des indicateurs
-Deux axes ont été abordés :
-
-Pour RISQ (défaut, migration, LGD, recouvrements, provisions), la migration des codes de calcul est terminée.
-
-Pour DFIN (encours, prépaiements, octrois, pertes, provisions), la migration est en cours, avec des tests complémentaires prévus.
-
-Présentation de la production des datapacks et des gap analysis
-L’équipe a détaillé la phase de production :
-
-L’automatisation complète des datapacks et le développement de l’interface user-friendly sont en phase de finalisation.
-
-Des tests du pipeline ont été réalisés sur l’historique des données (2007-2023).
-En complément, les fichiers de gap analysis (RACER4 vs RACER4 et JUNON5 vs JUNON5, avant migration Python/PySpark vs après) ont été présentés pour illustrer les écarts et optimiser le processus.
-
-Documentation et transfert des connaissances
-
-La rédaction de la documentation détaillant les étapes de production est en cours.
-
-Des ateliers de passation sont organisés pour assurer le transfert de connaissances aux équipes RISQ.
-
-Discussion sur l’homologation et les impacts futurs
-
-L’homologation des données UV MOD Target vs UV MOD Legacy (2023-2024) est en cours.
-
-L’impact de la nouvelle segmentation IFRS9 (entrée en vigueur en 2024) sera étroitement suivi.
-
-Prochaines étapes
-
-Poursuivre les tests de non-régression et procéder aux ajustements si nécessaire.
-
-Finaliser l’automatisation et l’interface avant la mise en production.
-
-Conclure l’homologation et suivre l’impact de la segmentation IFRS9.
-
-N’hésitez pas à me faire part de vos remarques ou questions.
-
-Bien cordialement,
-
-[Votre Nom]
-[Votre Rôle]
-[Votre Entreprise]
