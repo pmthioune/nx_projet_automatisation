@@ -1,40 +1,41 @@
-. Contexte et objectifs du workshop
-Dans le cadre de la titrisation, nous devons automatiser le calcul des indicateurs des datapacks (RACER, JUNON, etc.). Ce workshop a été organisé afin de discuter :
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import sum as spark_sum
 
-De l’intégration des données pertes et provisions dans nos travaux.
+# Initialiser Spark
+spark = SparkSession.builder.appName("OptimizedFiltrageNotes").getOrCreate()
 
-Du processus d’extraction PES et PED des données encours, pertes et provisions.
+# Exemple de DataFrame
+data = [("TP001", 0, 15), ("TP001", 0, 10), ("TP002", 5, 12), 
+        ("TP003", 0, 0), ("TP003", 0, 0), ("TP004", 8, 14), 
+        ("TP005", 0, 0), ("TP005", 0, 5)]
 
-2. Échanges sur l’intégration des données pertes et provisions
-Discussion sur la disponibilité des données et les sources à privilégier.
+df = spark.createDataFrame(data, ["thirdparty_code", "note_sg", "note_cdn"])
 
-Identification des règles de gestion à appliquer pour garantir la cohérence et la fiabilité des indicateurs.
+# Suppression des thirdparty_code où sum(note_sg) == 0
+df_filtre_sg = df.join(
+    df.groupBy("thirdparty_code").agg(spark_sum("note_sg").alias("sum_note_sg"))
+      .filter("sum_note_sg > 0")
+      .select("thirdparty_code"),
+    on="thirdparty_code",
+    how="inner"
+)
 
-Analyse des impacts du décommissionnement de SAFIR sur la récupération des données pertes et provisions.
+# Suppression des thirdparty_code où sum(note_cdn) == 0
+df_filtre_cdn = df.join(
+    df.groupBy("thirdparty_code").agg(spark_sum("note_cdn").alias("sum_note_cdn"))
+      .filter("sum_note_cdn > 0")
+      .select("thirdparty_code"),
+    on="thirdparty_code",
+    how="inner"
+)
 
-3. Extraction des données PES et PED
-Rappel du processus d’extraction des données encours, pertes et provisions.
+# Affichage des résultats
+print("🔹 Après suppression par note_sg :")
+df_filtre_sg.show()
 
-Validation du format des données et des ajustements nécessaires pour leur exploitation dans le pipeline d’automatisation.
+print("🔹 Après suppression par note_cdn :")
+df_filtre_cdn.show()
 
-Discussion sur l’intégration automatique de ces données dans le calcul des indicateurs des datapacks.
-
-4. Prochaines étapes et actions à mener
-Action	Responsable	Échéance
-Ajout du Booking Entity dans l’EDB	Moussa	[À compléter]
-Extraction des données SAFIR au 04/2024	Amélie	[À compléter]
-Extraction des données sur la nouvelle plateforme et étude d’impact	BdfScr / Nexialog	[À compléter]
-Intégration des données extraites dans le pipeline d’automatisation	Nexialog	[À compléter]
-5. Points d’attention
-Vérifier la qualité des données extraites pour éviter des écarts dans les indicateurs.
-
-Assurer une cohérence entre les nouvelles sources de données et celles précédemment utilisées.
-
-Anticiper d’éventuelles évolutions réglementaires impactant le calcul des pertes et provisions.
-
-Prochain point de suivi : [À définir]
-
-Merci,
 
 
 
