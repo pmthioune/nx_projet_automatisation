@@ -2,25 +2,33 @@ import pandas as pd
 import numpy as np
 
 def compute_descriptive_stats(df):
-    stats = {}
+    numeric_stats = []
+    categorical_stats = []
+    
     for col in df.columns:
         if df[col].dtype in ['int64', 'float64']:  # Variables numériques
-            stats[col] = {
-                'min': df[col].min(),
-                'max': df[col].max(),
-                'mean': df[col].mean(),
-                'median': df[col].median(),
-                'q1': df[col].quantile(0.25),
-                'q3': df[col].quantile(0.75),
-                'std': df[col].std()
-            }
+            numeric_stats.append({
+                'Variable': col,
+                'Min': df[col].min(),
+                'Max': df[col].max(),
+                'Mean': df[col].mean(),
+                'Median': df[col].median(),
+                'Q1': df[col].quantile(0.25),
+                'Q3': df[col].quantile(0.75),
+                'Std': df[col].std()
+            })
         else:  # Variables catégoriques
-            stats[col] = {
-                'mode': df[col].mode()[0] if not df[col].mode().empty else None,
-                'unique_values': df[col].nunique(),
-                'top_frequencies': df[col].value_counts().head(3).to_dict()
-            }
-    return stats
+            categorical_stats.append({
+                'Variable': col,
+                'Mode': df[col].mode()[0] if not df[col].mode().empty else None,
+                'Unique Values': df[col].nunique(),
+                'Top Frequencies': df[col].value_counts().head(3).to_dict()
+            })
+    
+    df_numeric_stats = pd.DataFrame(numeric_stats)
+    df_categorical_stats = pd.DataFrame(categorical_stats)
+    
+    return df_numeric_stats, df_categorical_stats
 
 # Exemple d'utilisation avec un fichier CSV (à remplacer par votre dataset réel)
 if __name__ == "__main__":
@@ -28,11 +36,10 @@ if __name__ == "__main__":
     df = pd.read_csv('data.csv')
     
     # Calcul des statistiques descriptives
-    stats = compute_descriptive_stats(df)
+    df_numeric_stats, df_categorical_stats = compute_descriptive_stats(df)
     
     # Affichage des résultats
-    for col, stat in stats.items():
-        print(f"Statistiques pour {col}:")
-        for key, value in stat.items():
-            print(f"  {key}: {value}")
-        print("-")
+    print("Statistiques numériques:")
+    print(df_numeric_stats)
+    print("\nStatistiques catégoriques:")
+    print(df_categorical_stats)
