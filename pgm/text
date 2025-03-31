@@ -1,45 +1,38 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import sum as spark_sum
+import pandas as pd
+import numpy as np
 
-# Initialiser Spark
-spark = SparkSession.builder.appName("OptimizedFiltrageNotes").getOrCreate()
+def compute_descriptive_stats(df):
+    stats = {}
+    for col in df.columns:
+        if df[col].dtype in ['int64', 'float64']:  # Variables numériques
+            stats[col] = {
+                'min': df[col].min(),
+                'max': df[col].max(),
+                'mean': df[col].mean(),
+                'median': df[col].median(),
+                'q1': df[col].quantile(0.25),
+                'q3': df[col].quantile(0.75),
+                'std': df[col].std()
+            }
+        else:  # Variables catégoriques
+            stats[col] = {
+                'mode': df[col].mode()[0] if not df[col].mode().empty else None,
+                'unique_values': df[col].nunique(),
+                'top_frequencies': df[col].value_counts().head(3).to_dict()
+            }
+    return stats
 
-# Exemple de DataFrame
-data = [("TP001", 0, 15), ("TP001", 0, 10), ("TP002", 5, 12), 
-        ("TP003", 0, 0), ("TP003", 0, 0), ("TP004", 8, 14), 
-        ("TP005", 0, 0), ("TP005", 0, 5)]
-
-df = spark.createDataFrame(data, ["thirdparty_code", "note_sg", "note_cdn"])
-
-# Suppression des thirdparty_code où sum(note_sg) == 0
-df_filtre_sg = df.join(
-    df.groupBy("thirdparty_code").agg(spark_sum("note_sg").alias("sum_note_sg"))
-      .filter("sum_note_sg > 0")
-      .select("thirdparty_code"),
-    on="thirdparty_code",
-    how="inner"
-)
-
-# Suppression des thirdparty_code où sum(note_cdn) == 0
-df_filtre_cdn = df.join(
-    df.groupBy("thirdparty_code").agg(spark_sum("note_cdn").alias("sum_note_cdn"))
-      .filter("sum_note_cdn > 0")
-      .select("thirdparty_code"),
-    on="thirdparty_code",
-    how="inner"
-)
-
-# Affichage des résultats
-print("🔹 Après suppression par note_sg :")
-df_filtre_sg.show()
-
-print("🔹 Après suppression par note_cdn :")
-df_filtre_cdn.show()
-
-
-
-
-
-
-
-
+# Exemple d'utilisation avec un fichier CSV (à remplacer par votre dataset réel)
+if __name__ == "__main__":
+    # Charger les données (remplacez 'data.csv' par votre fichier réel)
+    df = pd.read_csv('data.csv')
+    
+    # Calcul des statistiques descriptives
+    stats = compute_descriptive_stats(df)
+    
+    # Affichage des résultats
+    for col, stat in stats.items():
+        print(f"Statistiques pour {col}:")
+        for key, value in stat.items():
+            print(f"  {key}: {value}")
+        print("-")
