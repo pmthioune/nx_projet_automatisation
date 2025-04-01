@@ -22,7 +22,7 @@ def compute_descriptive_stats(df):
                 'Variable': col,
                 'Mode': df[col].mode()[0] if not df[col].mode().empty else None,
                 'Unique Values': df[col].nunique(),
-                'Top Frequencies': df[col].value_counts().head(3).to_dict()
+                'Top Frequencies': df[col].value_counts().head(20).to_dict()
             })
     
     df_numeric_stats = pd.DataFrame(numeric_stats)
