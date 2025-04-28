@@ -3,39 +3,45 @@
 import pandas as pd
 import re
 
-def extract_tables_from_losses(filepath):
+def extract_vintage_tables(filepath, max_rows=1000):
     """
-    Extrait les tableaux de l'onglet 'Losses' d'un fichier Excel.
+    Extrait les blocs 'YE Vintage' de l'onglet 'Losses' du fichier Excel.
 
     Args:
         filepath (str): Chemin du fichier Excel.
+        max_rows (int, optional): Nombre maximum de lignes à lire. Par défaut 1000.
 
     Returns:
-        dict: Dictionnaire contenant les tableaux extraits sous forme de DataFrames.
+        dict: {vintage_title: DataFrame}
     """
 
-    sheet_name = 'Losses'
+    # Lire seulement la colonne B à Z, 1000 premières lignes
+    df = pd.read_excel(filepath, sheet_name='Losses', header=None, skiprows=1, usecols="B:Z", nrows=max_rows)
+    
+    # Correction erreurs éventuelles "g" => "9"
+    df = df.replace('g', '9', regex=True)
 
-    # Lire la feuille sans header
-    df = pd.read_excel(filepath, sheet_name=sheet_name, header=None)
+    # Trouver où commencent les Vintage
+    vintage_indices = df.index[df[1].astype(str).str.contains(r'\d{4} YE vintage', case=False, na=False)].tolist()
+    vintage_indices.append(len(df))  # Ajouter fin fichier pour terminer le dernier bloc
 
-    # Corriger quelques erreurs connues si nécessaire
-    df = df.applymap(lambda x: str(x).replace('g', '9') if isinstance(x, str) else x)
+    tables = {}
+    
+    for i in range(len(vintage_indices) - 1):
+        start = vintage_indices[i]
+        end = vintage_indices[i+1]
 
-    # Trouver les indices où un tableau commence
-    indices_blocs = df.index[df[0].astype(str).str.match(r'^\d{4}-12|^\d{4} YE vintage$', na=False)].tolist()
+        # Nom du vintage
+        vintage_title = str(df.iloc[start, 1]).strip()
 
-    # Ajouter la fin pour découper jusqu'à la dernière ligne
-    indices_blocs.append(len(df))
+        # Lire colonnes (normalement juste après le titre)
+        columns = df.iloc[start + 1, 1:].tolist()
 
-    # Découper les blocs
-    tableaux = {}
-    for i in range(len(indices_blocs) - 1):
-        debut = indices_blocs[i]
-        fin = indices_blocs[i+1]
-        bloc = df.iloc[debut:fin].reset_index(drop=True)
+        # Lire les données : de start+2 jusqu'à end
+        data = df.iloc[start + 2:end, 1:]
+        data.columns = columns
 
-        titre = str(bloc.iloc[0, 0]).strip()
-        tableaux[titre] = bloc
+        # Ajouter le Vintage et son DataFrame
+        tables[vintage_title] = data.reset_index(drop=True)
 
-    return tableaux
+    return tables
