@@ -1,45 +1,41 @@
+# module_losses_extractor.py
+
 import pandas as pd
-import numpy as np
+import re
 
-def compute_descriptive_stats(df):
-    numeric_stats = []
-    categorical_stats = []
-    
-    for col in df.columns:
-        if df[col].dtype in ['int64', 'float64']:  # Variables numériques
-            numeric_stats.append({
-                'Variable': col,
-                'Min': df[col].min(),
-                'Max': df[col].max(),
-                'Mean': df[col].mean(),
-                'Median': df[col].median(),
-                'Q1': df[col].quantile(0.25),
-                'Q3': df[col].quantile(0.75),
-                'Std': df[col].std()
-            })
-        else:  # Variables catégoriques
-            categorical_stats.append({
-                'Variable': col,
-                'Mode': df[col].mode()[0] if not df[col].mode().empty else None,
-                'Unique Values': df[col].nunique(),
-                'Top Frequencies': df[col].value_counts().head(20).to_dict()
-            })
-    
-    df_numeric_stats = pd.DataFrame(numeric_stats)
-    df_categorical_stats = pd.DataFrame(categorical_stats)
-    
-    return df_numeric_stats, df_categorical_stats
+def extract_tables_from_losses(filepath):
+    """
+    Extrait les tableaux de l'onglet 'Losses' d'un fichier Excel.
 
-# Exemple d'utilisation avec un fichier CSV (à remplacer par votre dataset réel)
-if __name__ == "__main__":
-    # Charger les données (remplacez 'data.csv' par votre fichier réel)
-    df = pd.read_csv('data.csv')
-    
-    # Calcul des statistiques descriptives
-    df_numeric_stats, df_categorical_stats = compute_descriptive_stats(df)
-    
-    # Affichage des résultats
-    print("Statistiques numériques:")
-    print(df_numeric_stats)
-    print("\nStatistiques catégoriques:")
-    print(df_categorical_stats)
+    Args:
+        filepath (str): Chemin du fichier Excel.
+
+    Returns:
+        dict: Dictionnaire contenant les tableaux extraits sous forme de DataFrames.
+    """
+
+    sheet_name = 'Losses'
+
+    # Lire la feuille sans header
+    df = pd.read_excel(filepath, sheet_name=sheet_name, header=None)
+
+    # Corriger quelques erreurs connues si nécessaire
+    df = df.applymap(lambda x: str(x).replace('g', '9') if isinstance(x, str) else x)
+
+    # Trouver les indices où un tableau commence
+    indices_blocs = df.index[df[0].astype(str).str.match(r'^\d{4}-12|^\d{4} YE vintage$', na=False)].tolist()
+
+    # Ajouter la fin pour découper jusqu'à la dernière ligne
+    indices_blocs.append(len(df))
+
+    # Découper les blocs
+    tableaux = {}
+    for i in range(len(indices_blocs) - 1):
+        debut = indices_blocs[i]
+        fin = indices_blocs[i+1]
+        bloc = df.iloc[debut:fin].reset_index(drop=True)
+
+        titre = str(bloc.iloc[0, 0]).strip()
+        tableaux[titre] = bloc
+
+    return tableaux
