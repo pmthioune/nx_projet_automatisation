@@ -1,47 +1,16 @@
-# module_losses_extractor.py
+# Lecture des tables
+table1 = pd.read_csv("table1.csv")
+table2 = pd.read_csv("table2.csv")
+table3 = pd.read_csv("table3.csv")
+table4 = pd.read_csv("table4.csv")
 
-import pandas as pd
-import re
+# Même logique de filtrage
+tables = [table1, table2, table3, table4]
+mask_zero_obligors = (table1.drop(columns='obligor') == 0).all(axis=1)
+tables_filtered = [table[~mask_zero_obligors].reset_index(drop=True) for table in tables]
 
-def extract_vintage_tables(filepath, max_rows=1000):
-    """
-    Extrait les blocs 'YE Vintage' de l'onglet 'Losses' du fichier Excel.
-
-    Args:
-        filepath (str): Chemin du fichier Excel.
-        max_rows (int, optional): Nombre maximum de lignes à lire. Par défaut 1000.
-
-    Returns:
-        dict: {vintage_title: DataFrame}
-    """
-
-    # Lire seulement la colonne B à Z, 1000 premières lignes
-    df = pd.read_excel(filepath, sheet_name='Losses', header=None, skiprows=1, usecols="B:Z", nrows=max_rows)
-    
-    # Correction erreurs éventuelles "g" => "9"
-    df = df.replace('g', '9', regex=True)
-
-    # Trouver où commencent les Vintage
-    vintage_indices = df.index[df[1].astype(str).str.contains(r'\d{4} YE vintage', case=False, na=False)].tolist()
-    vintage_indices.append(len(df))  # Ajouter fin fichier pour terminer le dernier bloc
-
-    tables = {}
-    
-    for i in range(len(vintage_indices) - 1):
-        start = vintage_indices[i]
-        end = vintage_indices[i+1]
-
-        # Nom du vintage
-        vintage_title = str(df.iloc[start, 1]).strip()
-
-        # Lire colonnes (normalement juste après le titre)
-        columns = df.iloc[start + 1, 1:].tolist()
-
-        # Lire les données : de start+2 jusqu'à end
-        data = df.iloc[start + 2:end, 1:]
-        data.columns = columns
-
-        # Ajouter le Vintage et son DataFrame
-        tables[vintage_title] = data.reset_index(drop=True)
-
-    return tables
+# Écriture des fichiers filtrés
+tables_filtered[0].to_csv("table1_filtered.csv", index=False)
+tables_filtered[1].to_csv("table2_filtered.csv", index=False)
+tables_filtered[2].to_csv("table3_filtered.csv", index=False)
+tables_filtered[3].to_csv("table4_filtered.csv", index=False)
